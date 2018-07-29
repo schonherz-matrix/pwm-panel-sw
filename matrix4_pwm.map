@@ -1,0 +1,48 @@
+MPLINK 4.49, Linker
+Linker Map File - Created Thu Jul 26 19:10:38 2018
+
+                                 Section Info
+                  Section       Type    Address   Location Size(Bytes)
+                ---------  ---------  ---------  ---------  ---------
+                   .org_0       code   0x000000    program   0x000006
+                   .org_1       code   0x000004    program   0x000224
+                   .cinit    romdata   0x000116    program   0x000004
+
+
+
+                              Program Memory Usage 
+                               Start         End      
+                           ---------   ---------      
+                            0x000000    0x000002      
+                            0x000004    0x000117      
+            279 out of 2183 program addresses used, program memory utilization is 12%
+
+
+
+                              Symbols - Sorted by Name
+                     Name    Address   Location    Storage File                     
+                ---------  ---------  ---------  --------- ---------                
+                      ISR   0x000004    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
+                 IT_USART   0x000013    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
+         Init_PWM_Control   0x00001c    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\PWM.asm
+                Main_Loop   0x0000ec    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
+            Main_Loop_end   0x00010b    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
+              PWM_Control   0x00004b    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\PWM.asm
+              Start_Reset   0x0000b8    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
+               USART_Recv   0x000110    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
+
+
+
+                              Symbols - Sorted by Address
+                     Name    Address   Location    Storage File                     
+                ---------  ---------  ---------  --------- ---------                
+                      ISR   0x000004    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
+                 IT_USART   0x000013    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
+         Init_PWM_Control   0x00001c    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\PWM.asm
+              PWM_Control   0x00004b    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\PWM.asm
+              Start_Reset   0x0000b8    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
+                Main_Loop   0x0000ec    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
+            Main_Loop_end   0x00010b    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
+               USART_Recv   0x000110    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
+
+

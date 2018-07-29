@@ -1,0 +1,203 @@
+MPASM  5.51                      FT_MACRO.ASM   7-25-2018  20:04:37         PAGE  1
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00001 ;#define                sz      btfss   STATUS,Z
+                      00002 ;#define                snz     btfsc   STATUS,Z
+                      00003 ;#define                sc      btfss   STATUS,C
+                      00004 ;#define                snc     btfsc   STATUS,C
+                      00005 ;#define                tstw    xorlw   0
+                      00006 ;
+                      00007 ;;#define               setz    bsf     STATUS,Z,0
+                      00008 ;;#define               clrz    bcf     STATUS,Z,0
+                      00009 ;;#define               setc    bsf     STATUS,C,0
+                      00010 ;;#define               clrc    bcf     STATUS,C,0
+                      00011 ;
+                      00012 ;
+                      00013 ;;Error 207 - Found label after column 1
+                      00014 ;
+                      00015 ;byte   macro   nev,bank
+                      00016 ;       errorlevel -207
+                      00017 ;
+                      00018 ;       if bank== 0
+                      00019 ;               cblock  _RAM_B0
+                      00020 ;nev    
+                      00021 ;               endc
+                      00022 ;               _RAM_B0++
+                      00023 ;       endif           
+                      00024 ;       if bank== 1
+                      00025 ;               cblock  _RAM_B1
+                      00026 ;nev    
+                      00027 ;               endc
+                      00028 ;               _RAM_B1++
+                      00029 ;       endif
+                      00030 ;       if bank== 2
+                      00031 ;               cblock  _RAM_B2
+                      00032 ;nev    
+                      00033 ;               endc
+                      00034 ;               _RAM_B2++
+                      00035 ;       endif 
+                      00036 ;       if bank== 3
+                      00037 ;               cblock  _RAM_B3
+                      00038 ;nev    
+                      00039 ;               endc
+                      00040 ;               _RAM_B3++
+                      00041 ;       endif
+                      00042 ;       errorlevel +207
+                      00043 ;       endm
+                      00044 ;
+                      00045 ;word   macro   nev,bank
+                      00046 ;       errorlevel -207
+                      00047 ;
+                      00048 ;       if bank== 0
+                      00049 ;               cblock  _RAM_B0
+                      00050 ;nev:2  
+                      00051 ;               endc
+                      00052 ;               _RAM_B0+=2
+                      00053 ;       endif           
+MPASM  5.51                      FT_MACRO.ASM   7-25-2018  20:04:37         PAGE  2
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00054 ;       if bank== 1
+                      00055 ;               cblock  _RAM_B1
+                      00056 ;nev:2
+                      00057 ;               endc
+                      00058 ;               _RAM_B1+=2
+                      00059 ;       endif
+                      00060 ;       if bank== 2
+                      00061 ;               cblock  _RAM_B2
+                      00062 ;nev:2
+                      00063 ;               endc
+                      00064 ;               _RAM_B2+=2
+                      00065 ;       endif 
+                      00066 ;       if bank== 3
+                      00067 ;               cblock  _RAM_B3
+                      00068 ;nev:2
+                      00069 ;               endc
+                      00070 ;               _RAM_B3+=2
+                      00071 ;       endif
+                      00072 ;       errorlevel +207
+                      00073 ;       endm
+                      00074 ;
+                      00075 ;array  macro   nev,length,bank
+                      00076 ;       errorlevel -207
+                      00077 ;       if bank== 0
+                      00078 ;
+                      00079 ;               cblock  _RAM_B0
+                      00080 ;nev:length
+                      00081 ;               endc
+                      00082 ;               _RAM_B0+=length
+                      00083 ;       endif           
+                      00084 ;       if bank== 1
+                      00085 ;               cblock  _RAM_B1
+                      00086 ;nev:length
+                      00087 ;               endc
+                      00088 ;               _RAM_B1+=length
+                      00089 ;       endif
+                      00090 ;       if bank== 2
+                      00091 ;               cblock  _RAM_B2
+                      00092 ;nev:length
+                      00093 ;               endc
+                      00094 ;               _RAM_B2+=length
+                      00095 ;       endif 
+                      00096 ;       if bank== 3
+                      00097 ;               cblock  _RAM_B3
+                      00098 ;nev:length
+                      00099 ;               endc
+                      00100 ;               _RAM_B3+=length
+                      00101 ;       endif
+                      00102 ;       errorlevel +207
+                      00103 ;       endm
+                      00104 ;
+                      00105 ;
+                      00106 ;
+MPASM  5.51                      FT_MACRO.ASM   7-25-2018  20:04:37         PAGE  3
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00107 ;
+                      00108 ;
+                      00109 ;
+                      00110 ;
+                      00111 ;TMR_DEC         macro   timer
+                      00112 ;       NOEXPAND
+                      00113 ;                tstfsz  timer,0
+                      00114 ;                decf    timer,f,0
+                      00115 ;       EXPAND
+                      00116 ;                endm
+                      00117 ;
+                      00118 ;
+                      00119 ;TMR_DEC_FSR     macro   timer
+                      00120 ;       NOEXPAND
+                      00121 ;               lfsr    FSR1,timer
+                      00122 ;                tstfsz  INDF1
+                      00123 ;                decf    INDF1,f
+                      00124 ;       EXPAND
+                      00125 ;                endm
+                      00126 ;
+                      00127 ;
+                      00128 ;SUB16  macro   Fa,Fb   ;Fa-Fb->Fa
+                      00129 ;       NOEXPAND
+                      00130 ;       errorlevel -302
+                      00131 ;       if high(Fb)!= 0
+                      00132 ;               banksel Fb
+                      00133 ;       endif
+                      00134 ;               movf    Fb,w
+                      00135 ;
+                      00136 ;       if high(Fa)!=high(Fb)
+                      00137 ;               banksel Fa
+                      00138 ;       endif
+                      00139 ;               subwf   Fa,f
+                      00140 ;               sc
+                      00141 ;               decf    Fa+1,f
+                      00142 ;
+                      00143 ;       if high(Fa)!=high(Fb)
+                      00144 ;               banksel Fb
+                      00145 ;       endif
+                      00146 ;               movf    Fb+1,w
+                      00147 ;
+                      00148 ;       if high(Fa)!=high(Fb)
+                      00149 ;               banksel Fa
+                      00150 ;       endif
+                      00151 ;               subwf   Fa+1,f
+                      00152 ;       if high(Fa)!= 0
+                      00153 ;               banksel 0
+                      00154 ;       endif
+                      00155 ;       errorlevel +302
+                      00156 ;       EXPAND
+                      00157 ;       endm    
+                      00158 ;
+                      00159 ;
+MPASM  5.51                      FT_MACRO.ASM   7-25-2018  20:04:37         PAGE  4
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00160 ;
+                      00161 ;
+                      00162 ;
+                      00163 ;
+                      00164 
+Error[129]  : Expected (END)
+MPASM  5.51                      FT_MACRO.ASM   7-25-2018  20:04:37         PAGE  5
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+__16F882                          00000001
+__DEBUG                           1
+
+Errors   :     1
+Warnings :     0 reported,     0 suppressed
+Messages :     0 reported,     0 suppressed
+
+

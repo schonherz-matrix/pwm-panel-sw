@@ -1,0 +1,2396 @@
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE  1
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00001 ;******************************************************************************
+                      00002 ;*                                                                            *
+                      00003 ;*                                                                            *
+                      00004 ;******************************************************************************
+                      00005 ;
+                      00006 ;
+                      00007 ;-------------- Device data ---------------------------------------------------
+                      00008 ;
+                      00009 ;
+                      00010                 list    p=PIC16f882, r=DEC
+                      00011                 #include <p16f882.inc>
+                      00001         LIST
+                      00002 
+                      00003 ;==========================================================================
+                      00004 ;  MPASM PIC16F882 processor include
+                      00005 ; 
+                      00006 ;  (c) Copyright 1999-2013 Microchip Technology, All rights reserved
+                      00007 ;==========================================================================
+                      00008 
+                      00779         LIST
+                      00012                 #include "ft_macro.asm"
+                      00001 #define         sz      btfss   STATUS,Z
+                      00002 #define         snz     btfsc   STATUS,Z
+                      00003 #define         sc      btfss   STATUS,C
+                      00004 #define         snc     btfsc   STATUS,C
+                      00005 #define         tstw    xorlw   0
+                      00006 
+                      00007 ;#define                setz    bsf     STATUS,Z,0
+                      00008 ;#define                clrz    bcf     STATUS,Z,0
+                      00009 ;#define                setc    bsf     STATUS,C,0
+                      00010 ;#define                clrc    bcf     STATUS,C,0
+                      00011 
+                      00012 
+                      00013 ;Error 207 - Found label after column 1
+                      00014 
+                      00015 byte    macro   nev,bank
+                      00016         errorlevel -207
+                      00017 
+                      00018         if bank== 0
+                      00019                 cblock  _RAM_B0
+                      00020 nev     
+                      00021                 endc
+                      00022                 _RAM_B0++
+                      00023         endif           
+                      00024         if bank== 1
+                      00025                 cblock  _RAM_B1
+                      00026 nev     
+                      00027                 endc
+                      00028                 _RAM_B1++
+                      00029         endif
+                      00030         if bank== 2
+                      00031                 cblock  _RAM_B2
+                      00032 nev     
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE  2
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00033                 endc
+                      00034                 _RAM_B2++
+                      00035         endif 
+                      00036         if bank== 3
+                      00037                 cblock  _RAM_B3
+                      00038 nev     
+                      00039                 endc
+                      00040                 _RAM_B3++
+                      00041         endif
+                      00042         errorlevel +207
+                      00043         endm
+                      00044 
+                      00045 word    macro   nev,bank
+                      00046         errorlevel -207
+                      00047 
+                      00048         if bank== 0
+                      00049                 cblock  _RAM_B0
+                      00050 nev:2   
+                      00051                 endc
+                      00052                 _RAM_B0+=2
+                      00053         endif           
+                      00054         if bank== 1
+                      00055                 cblock  _RAM_B1
+                      00056 nev:2
+                      00057                 endc
+                      00058                 _RAM_B1+=2
+                      00059         endif
+                      00060         if bank== 2
+                      00061                 cblock  _RAM_B2
+                      00062 nev:2
+                      00063                 endc
+                      00064                 _RAM_B2+=2
+                      00065         endif 
+                      00066         if bank== 3
+                      00067                 cblock  _RAM_B3
+                      00068 nev:2
+                      00069                 endc
+                      00070                 _RAM_B3+=2
+                      00071         endif
+                      00072         errorlevel +207
+                      00073         endm
+                      00074 
+                      00075 array   macro   nev,length,bank
+                      00076         errorlevel -207
+                      00077         if bank== 0
+                      00078 
+                      00079                 cblock  _RAM_B0
+                      00080 nev:length
+                      00081                 endc
+                      00082                 _RAM_B0+=length
+                      00083         endif           
+                      00084         if bank== 1
+                      00085                 cblock  _RAM_B1
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE  3
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00086 nev:length
+                      00087                 endc
+                      00088                 _RAM_B1+=length
+                      00089         endif
+                      00090         if bank== 2
+                      00091                 cblock  _RAM_B2
+                      00092 nev:length
+                      00093                 endc
+                      00094                 _RAM_B2+=length
+                      00095         endif 
+                      00096         if bank== 3
+                      00097                 cblock  _RAM_B3
+                      00098 nev:length
+                      00099                 endc
+                      00100                 _RAM_B3+=length
+                      00101         endif
+                      00102         errorlevel +207
+                      00103         endm
+                      00104 
+                      00105 
+                      00106 
+                      00107 
+                      00108 
+                      00109 
+                      00110 
+                      00111 TMR_DEC         macro   timer
+                      00112         NOEXPAND
+                      00113                 tstf  timer
+                      00114                 sz
+                      00115                 decf    timer,f
+                      00116         EXPAND
+                      00117                 endm
+                      00118 
+                      00119 
+                      00120 TMR_DEC_FSR     macro   timer
+                      00121         NOEXPAND
+                      00122                 lfsr    FSR1,timer
+                      00123                 tstfsz  INDF1
+                      00124                 decf    INDF1,f
+                      00125         EXPAND
+                      00126                 endm
+                      00127 
+                      00128 
+                      00129 SUB16   macro   Fa,Fb   ;Fa-Fb->Fa
+                      00130         NOEXPAND
+                      00131         errorlevel -302
+                      00132         if high(Fb)!= 0
+                      00133                 banksel Fb
+                      00134         endif
+                      00135                 movf    Fb,w
+                      00136 
+                      00137         if high(Fa)!=high(Fb)
+                      00138                 banksel Fa
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE  4
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00139         endif
+                      00140                 subwf   Fa,f
+                      00141                 sc
+                      00142                 decf    Fa+1,f
+                      00143 
+                      00144         if high(Fa)!=high(Fb)
+                      00145                 banksel Fb
+                      00146         endif
+                      00147                 movf    Fb+1,w
+                      00148 
+                      00149         if high(Fa)!=high(Fb)
+                      00150                 banksel Fa
+                      00151         endif
+                      00152                 subwf   Fa+1,f
+                      00153         if high(Fa)!= 0
+                      00154                 banksel 0
+                      00155         endif
+                      00156         errorlevel +302
+                      00157         EXPAND
+                      00158         endm    
+                      00159 
+                      00160 
+                      00161 bank0   macro
+                      00162         NOEXPAND
+                      00163                 bcf     STATUS,RP0
+                      00164                 bcf     STATUS,RP1
+                      00165         EXPAND
+                      00166         endm
+                      00167 bank1   macro   
+                      00168         NOEXPAND
+                      00169                 bsf     STATUS,RP0
+                      00170                 bcf     STATUS,RP1
+                      00171         EXPAND
+                      00172         endm
+                      00173 bank2   macro   
+                      00174         NOEXPAND
+                      00175                 bcf     STATUS,RP0
+                      00176                 bsf     STATUS,RP1
+                      00177         EXPAND
+                      00178         endm
+                      00179 bank3   macro   
+                      00180         NOEXPAND
+                      00181                 bsf     STATUS,RP0
+                      00182                 bsf     STATUS,RP1
+                      00183         EXPAND
+                      00184         endm
+                      00185 
+                      00186 
+                      00187 
+                      00188 
+                      00189 
+                      00013 ;
+                      00014 
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE  5
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00015 ;------------------------------------------------------------------------------
+                      00016 ;-------------- RAM PARAMÉTEREK -------------------------------------------
+                      00017 ;------------------------------------------------------------------------------
+  00000020            00018 RAM_B0_BEG      =       0x0020          ;Bank0 RAM inicializalasok kezdete
+  0000006F            00019 RAM_B0_END      =       0x006F          ;Bank0 RAM inicializalasok vege
+  000000A0            00020 RAM_B1_BEG      =       0x00A0          ;Bank1 RAM inicializalasok kezdete
+  000000BF            00021 RAM_B1_END      =       0x00BF          ;Bank1 RAM inicializalasok vege
+                      00022 
+  0020                00023         variable        _RAM_B0=RAM_B0_BEG
+  00A0                00024         variable        _RAM_B1=RAM_B1_BEG
+                      00025 
+                      00026 
+                      00027 ;******************************************************************************
+                      00028 ;*                                                                            *
+                      00029 ;*                                                                            *
+                      00030 ;*                                                                            *
+                      00031 ;******************************************************************************
+                      00032 ;-------------- IT rutinhoz szukseges mentesi regiszterek
+                      00033         cblock 0x70     ; put these up in unbanked RAM
+  00000070            00034 W_Save
+  00000071            00035 STATUS_Save
+  00000072            00036 PCLATH_Save
+                      00037         endc
+                      00038 
+                      00039 
+  0000009C            00040 SYSTEM_TIMER_10MS_INIT  =       156
+  00000100            00041 TIMER0_CYCLE            =       256             ;Instruction cycle per Interrupt
+  00000088            00042 TMR0_INIT               =       256- TIMER0_CYCLE/2 +8
+                      00043 
+                      00044         byte    SystemTimer10ms,0
+                          M         errorlevel -207
+                          M 
+                          M         if 0==    0
+                          M                 cblock  _RAM_B0
+  00000020                M SystemTimer10ms 
+                          M                 endc
+  00000021                M                 _RAM_B0++
+                          M         endif           
+                          M         if 0==    1
+                          M                 cblock  _RAM_B1
+                          M SystemTimer10ms 
+                          M                 endc
+                          M                 _RAM_B1++
+                          M         endif
+                          M         if 0==    2
+                          M                 cblock  _RAM_B2
+                          M SystemTimer10ms 
+                          M                 endc
+                          M                 _RAM_B2++
+                          M         endif 
+                          M         if 0==    3
+                          M                 cblock  _RAM_B3
+                          M SystemTimer10ms 
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE  6
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                          M                 endc
+                          M                 _RAM_B3++
+                          M         endif
+                          M         errorlevel +207
+                      00045 
+                      00046 ;******************************************************************************
+                      00047 ;*                                                                            *
+                      00048 ;*              RESET                                                         *
+                      00049 ;*                                                                            *
+                      00050 ;******************************************************************************
+                      00051 
+0000                  00052                 org     0x0
+0000   0000           00053                 nop
+0001   0000           00054                 nop
+0002   2962           00055                 goto    Start_Reset
+                      00056 
+                      00057 
+                      00058 ;******************************************************************************
+                      00059 ;*                                                                            *
+                      00060 ;*              IT ADDRESS - IT ROUTINE                                       *
+                      00061 ;*                                                                            *
+                      00062 ;******************************************************************************
+0004                  00063                 org     0x4
+0004                  00064 ISR
+0004   00F0           00065                 movwf   W_Save          ;Copy W to W_Save register
+0005   0E03           00066                 swapf   STATUS,w        ;Swap status to be saved into W
+                      00067                                         ;Swaps are used because they do not affect the status bits
+0006   00F1           00068                 movwf   STATUS_Save     ;Save status to bank zero STATUS_Save register
+                      00069 
+0007   080A           00070                 movf    PCLATH,w        ;save PCLATH
+0008   00F2           00071                 movwf   PCLATH_Save
+                      00072 ;-----ISR------
+                      00073                 bank0
+                          M         EXPAND
+                      00074 
+000B   1D0B           00075                 btfss   INTCON,T0IF     ;TMR0 okozta az interruptot?
+000C   2814           00076                 goto    IT_USART        ;nem
+000D   110B           00077                 bcf     INTCON,T0IF     ;igen, clear TMR0 Interrupt flag
+000E   3088           00078                 movlw   TMR0_INIT       ;init TMR0
+000F   0081           00079                 movwf   TMR0
+                      00080 ;---TIMER0      
+                      00081                 TMR_DEC SystemTimer10ms ;decrement timer
+                          M         EXPAND
+0013   205E           00082                 call    PWM_Control     ;PWM control
+                      00083 
+0014                  00084 IT_USART
+0014   1A8C           00085                 btfsc   PIR1,RCIF       ;Usart-on jött adat?
+0015   20ED           00086                 call    USART_Recv      ;igen, feldolgozzuk
+                      00087 
+                      00088 ;-----ISR-END--
+0016   0872           00089                 movf    PCLATH_Save,w   ;Restore PCLATH
+0017   008A           00090                 movwf   PCLATH
+                      00091 
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE  7
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0018   0E71           00092                 swapf   STATUS_Save,w   ;Swap STATUS_Save register into W
+                      00093                                         ;(sets bank to original state)
+0019   0083           00094                 movwf   STATUS          ;Move W into STATUS register
+001A   0EF0           00095                 swapf   W_Save,f        ;Swap W_Save
+001B   0E70           00096                 swapf   W_Save,w        ;Swap W_Save into W
+001C   0009           00097                 retfie
+                      00098 ;******************************************************************************
+                      00099 ;*                                                                            *
+                      00100 ;*              TABLES                                                *
+                      00101 ;*                                                                            *
+                      00102 ;******************************************************************************
+001D                  00103 PWM_Szin_Table
+001D   390F           00104                 andlw           0x0F
+001E   0782           00105                 addwf           PCL,f
+                      00106 
+001F   3428           00107                 retlw           szint_r
+0020   3428           00108                 retlw           szint_r
+0021   3428           00109                 retlw           szint_r
+0022   3428           00110                 retlw           szint_r
+0023   3428           00111                 retlw           szint_r
+0024   3428           00112                 retlw           szint_r
+0025   3428           00113                 retlw           szint_r
+0026   3428           00114                 retlw           szint_r
+0027   3428           00115                 retlw           szint_r
+0028   3428           00116                 retlw           szint_r
+0029   3428           00117                 retlw           szint_r
+002A   3428           00118                 retlw           szint_r
+                      00119                 ;Nem szükséges, de nehogy túlfusson
+002B   3428           00120                 retlw           szint_r
+002C   3428           00121                 retlw           szint_r
+002D   3428           00122                 retlw           szint_r
+002E   3428           00123                 retlw           szint_r
+                      00124 ;******************************************************************************
+                      00125 ;*                                                                            *
+                      00126 ;*              INCLUDES                                                      *
+                      00127 ;*                                                                            *
+                      00128 ;******************************************************************************
+                      00129                 #include        "main.h"
+                      00001 ; CONFIG1
+                      00002 ; __config 0xEFFA
+                      00003 ; __CONFIG _CONFIG1, _FOSC_HS & _WDTE_ON & _PWRTE_ON & _MCLRE_ON & _CP_OFF & _CPD_OFF & _BOREN_ON & _IES
+                            O_ON & _FCMEN_ON & _LVP_OFF & _DEBUG_OFF
+                      00004 ; CONFIG2
+                      00005 ; __config 0xFEFF
+                      00006 ; __CONFIG _CONFIG2, _BOR4V_BOR21V & _WRT_OFF
+                      00007 
+                      00008 
+                      00009 
+                      00010 ;---------------Enable/Disable Interrupts
+                      00011 #define         EN_GLOBAL_IT            bsf     INTCON,GIE
+                      00012 #define         DIS_GLOBAL_IT           bcf     INTCON,GIE
+                      00013 
+                      00014 #define         EN_PERIPH_IT            bsf     INTCON,PEIE
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE  8
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00015 #define         DIS_PERIPH_IT           bcf     INTCON,PEIE
+                      00016 
+                      00017 
+                      00018 
+                      00019 
+  00000000            00020 OPTION_REG_INIT =       B'00000000'
+                      00021 ;               bit 7 RBPU: PORTB Pull-up Enable bit
+                      00022 ;                       1 = PORTB pull-ups are disabled
+                      00023 ;               -->     0 = PORTB pull-ups are enabled by individual PORT latch values
+                      00024 ;               bit 6 INTEDG: Interrupt Edge Select bit
+                      00025 ;                       1 = Interrupt on rising edge of INT pin
+                      00026 ;               -->     0 = Interrupt on falling edge of INT pin
+                      00027 ;               bit 5 T0CS: TMR0 Clock Source Select bit
+                      00028 ;                       1 = Transition on T0CKI pin
+                      00029 ;               -->     0 = Internal instruction cycle clock (FOSC/4)
+                      00030 ;               bit 4 T0SE: TMR0 Source Edge Select bit
+                      00031 ;                       1 = Increment on high-to-low transition on T0CKI pin
+                      00032 ;               -->     0 = Increment on low-to-high transition on T0CKI pin
+                      00033 ;               bit 3 PSA: Prescaler Assignment bit
+                      00034 ;                       1 = Prescaler is assigned to the WDT
+                      00035 ;               -->     0 = Prescaler is assigned to the Timer0 module
+                      00036 ;               bit 2-0 PS<2:0>: Prescaler Rate Select bits
+                      00037 ;                       BIT VALUE       TMR0 RATE       WDT RATE
+                      00038 ;               -->     000                     1 : 2           1 : 1   
+                      00039 ;                       001                     1 : 4           1 : 2   
+                      00040 ;                       010                     1 : 8           1 : 4   
+                      00041 ;                       011                     1 : 16          1 : 8   
+                      00042 ;                       100                     1 : 32          1 : 16  
+                      00043 ;                       101                     1 : 64          1 : 32  
+                      00044 ;                       110                     1 : 128         1 : 64  
+                      00045 ;                       111                     1 : 256         1 : 128 
+                      00046 
+                      00047 
+  00000015            00048 WDTCON_INIT     =       B'00010101'     ;enable, 1:32
+                      00049 ;               bit 7-5 Unimplemented: Read as ‘0’
+                      00050 ;               bit 4-1 WDTPS<3:0>: Watchdog Timer Period Select bits
+                      00051 ;                       Bit Value       = Prescale Rate
+                      00052 ;                       0000            = 1:32
+                      00053 ;                       0001            = 1:64
+                      00054 ;                       0010            = 1:128
+                      00055 ;                       0011            = 1:256
+                      00056 ;                       0100            = 1:512 (Reset value)
+                      00057 ;                       0101            = 1:1024
+                      00058 ;                       0110            = 1:2048
+                      00059 ;                       0111            = 1:4096
+                      00060 ;                       1000            = 1:8192
+                      00061 ;                       1001            = 1:16384
+                      00062 ;               -->     1010            = 1:32768
+                      00063 ;                       1011            = 1:65536
+                      00064 ;                       1100            = reserved
+                      00065 ;                       1101            = reserved
+                      00066 ;                       1110            = reserved
+                      00067 ;                       1111            = reserved
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE  9
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00068 ;               bit 0 SWDTEN: Software Enable or Disable the Watchdog Timer(1)
+                      00069 ;               -->     1 = WDT is turned on
+                      00070 ;                       0 = WDT is turned off (Reset value)
+                      00071 
+                      00072 
+                      00073 
+                      00074 
+                      00075 
+                      00076 
+                      00130                 #include        "usart.h"
+                      00001                 byte    RX_TMP,0
+                          M         errorlevel -207
+                          M 
+                          M         if 0==    0
+                          M                 cblock  _RAM_B0
+  00000021                M RX_TMP  
+                          M                 endc
+  00000022                M                 _RAM_B0++
+                          M         endif           
+                          M         if 0==    1
+                          M                 cblock  _RAM_B1
+                          M RX_TMP  
+                          M                 endc
+                          M                 _RAM_B1++
+                          M         endif
+                          M         if 0==    2
+                          M                 cblock  _RAM_B2
+                          M RX_TMP  
+                          M                 endc
+                          M                 _RAM_B2++
+                          M         endif 
+                          M         if 0==    3
+                          M                 cblock  _RAM_B3
+                          M RX_TMP  
+                          M                 endc
+                          M                 _RAM_B3++
+                          M         endif
+                          M         errorlevel +207
+                      00002                 byte    usart_rx_mode,0
+                          M         errorlevel -207
+                          M 
+                          M         if 0==    0
+                          M                 cblock  _RAM_B0
+  00000022                M usart_rx_mode 
+                          M                 endc
+  00000023                M                 _RAM_B0++
+                          M         endif           
+                          M         if 0==    1
+                          M                 cblock  _RAM_B1
+                          M usart_rx_mode 
+                          M                 endc
+                          M                 _RAM_B1++
+                          M         endif
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE 10
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                          M         if 0==    2
+                          M                 cblock  _RAM_B2
+                          M usart_rx_mode 
+                          M                 endc
+                          M                 _RAM_B2++
+                          M         endif 
+                          M         if 0==    3
+                          M                 cblock  _RAM_B3
+                          M usart_rx_mode 
+                          M                 endc
+                          M                 _RAM_B3++
+                          M         endif
+                          M         errorlevel +207
+                      00003                         ;0 - uninitialized, wait for receiving USART_INIT_MARKER
+                      00004                         ;1 - normal mode
+                      00005                 byte    usart_rx_id,0
+                          M         errorlevel -207
+                          M 
+                          M         if 0==    0
+                          M                 cblock  _RAM_B0
+  00000023                M usart_rx_id 
+                          M                 endc
+  00000024                M                 _RAM_B0++
+                          M         endif           
+                          M         if 0==    1
+                          M                 cblock  _RAM_B1
+                          M usart_rx_id 
+                          M                 endc
+                          M                 _RAM_B1++
+                          M         endif
+                          M         if 0==    2
+                          M                 cblock  _RAM_B2
+                          M usart_rx_id 
+                          M                 endc
+                          M                 _RAM_B2++
+                          M         endif 
+                          M         if 0==    3
+                          M                 cblock  _RAM_B3
+                          M usart_rx_id 
+                          M                 endc
+                          M                 _RAM_B3++
+                          M         endif
+                          M         errorlevel +207
+                      00006                 byte    usart_rx_fenyero,0
+                          M         errorlevel -207
+                          M 
+                          M         if 0==    0
+                          M                 cblock  _RAM_B0
+  00000024                M usart_rx_fenyero 
+                          M                 endc
+  00000025                M                 _RAM_B0++
+                          M         endif           
+                          M         if 0==    1
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE 11
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                          M                 cblock  _RAM_B1
+                          M usart_rx_fenyero 
+                          M                 endc
+                          M                 _RAM_B1++
+                          M         endif
+                          M         if 0==    2
+                          M                 cblock  _RAM_B2
+                          M usart_rx_fenyero 
+                          M                 endc
+                          M                 _RAM_B2++
+                          M         endif 
+                          M         if 0==    3
+                          M                 cblock  _RAM_B3
+                          M usart_rx_fenyero 
+                          M                 endc
+                          M                 _RAM_B3++
+                          M         endif
+                          M         errorlevel +207
+                      00007                 byte    usart_rx_ph_cnt,0
+                          M         errorlevel -207
+                          M 
+                          M         if 0==    0
+                          M                 cblock  _RAM_B0
+  00000025                M usart_rx_ph_cnt 
+                          M                 endc
+  00000026                M                 _RAM_B0++
+                          M         endif           
+                          M         if 0==    1
+                          M                 cblock  _RAM_B1
+                          M usart_rx_ph_cnt 
+                          M                 endc
+                          M                 _RAM_B1++
+                          M         endif
+                          M         if 0==    2
+                          M                 cblock  _RAM_B2
+                          M usart_rx_ph_cnt 
+                          M                 endc
+                          M                 _RAM_B2++
+                          M         endif 
+                          M         if 0==    3
+                          M                 cblock  _RAM_B3
+                          M usart_rx_ph_cnt 
+                          M                 endc
+                          M                 _RAM_B3++
+                          M         endif
+                          M         errorlevel +207
+                      00008                 byte    fenyero_szin,0
+                          M         errorlevel -207
+                          M 
+                          M         if 0==    0
+                          M                 cblock  _RAM_B0
+  00000026                M fenyero_szin 
+                          M                 endc
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE 12
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+  00000027                M                 _RAM_B0++
+                          M         endif           
+                          M         if 0==    1
+                          M                 cblock  _RAM_B1
+                          M fenyero_szin 
+                          M                 endc
+                          M                 _RAM_B1++
+                          M         endif
+                          M         if 0==    2
+                          M                 cblock  _RAM_B2
+                          M fenyero_szin 
+                          M                 endc
+                          M                 _RAM_B2++
+                          M         endif 
+                          M         if 0==    3
+                          M                 cblock  _RAM_B3
+                          M fenyero_szin 
+                          M                 endc
+                          M                 _RAM_B3++
+                          M         endif
+                          M         errorlevel +207
+                      00009                 byte    usart_status,0
+                          M         errorlevel -207
+                          M 
+                          M         if 0==    0
+                          M                 cblock  _RAM_B0
+  00000027                M usart_status 
+                          M                 endc
+  00000028                M                 _RAM_B0++
+                          M         endif           
+                          M         if 0==    1
+                          M                 cblock  _RAM_B1
+                          M usart_status 
+                          M                 endc
+                          M                 _RAM_B1++
+                          M         endif
+                          M         if 0==    2
+                          M                 cblock  _RAM_B2
+                          M usart_status 
+                          M                 endc
+                          M                 _RAM_B2++
+                          M         endif 
+                          M         if 0==    3
+                          M                 cblock  _RAM_B3
+                          M usart_status 
+                          M                 endc
+                          M                 _RAM_B3++
+                          M         endif
+                          M         errorlevel +207
+                      00010 
+                      00011 #define         usart_sendVersion       usart_status,0
+                      00012 #define         usart_sendAck           usart_status,1
+                      00013 
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE 13
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+  00000076            00014 VERSION_TEXT_1          =       'v'
+  00000031            00015 VERSION_TEXT_2          =       '1'
+  0000002E            00016 VERSION_TEXT_3          =       '.'
+  00000030            00017 VERSION_TEXT_4          =       '0'
+                      00018 
+  000000F0            00019 USART_INIT_MARKER       =       0xF0
+  000000F5            00020 USART_RX_ACK_MARKER     =       0xF5
+  00000041            00021 USART_TX_ACK_BASE       =       'A'
+  0000000E            00022 USART_CONFIG_MARKER     =       14
+                      00023 
+                      00024 
+  00000024            00025 TXSTA_INIT      =       B'00100100'
+                      00026 ;               bit 7 CSRC: Clock Source Select bit
+                      00027 ;                       Asynchronous mode:
+                      00028 ;               -->             Don’t care
+                      00029 ;                       Synchronous mode:
+                      00030 ;                               1 = Master mode (clock generated internally from BRG)
+                      00031 ;                               0 = Slave mode (clock from external source)
+                      00032 ;               bit 6 TX9: 9-bit Transmit Enable bit
+                      00033 ;                       1 = Selects 9-bit transmission
+                      00034 ;               -->     0 = Selects 8-bit transmission
+                      00035 ;               bit 5 TXEN: Transmit Enable bit(1)
+                      00036 ;               -->     1 = Transmit enabled
+                      00037 ;                       0 = Transmit disabled
+                      00038 ;               bit 4 SYNC: EUSART Mode Select bit
+                      00039 ;                       1 = Synchronous mode
+                      00040 ;               -->     0 = Asynchronous mode
+                      00041 ;               bit 3 SENDB: Send Break Character bit
+                      00042 ;                       Asynchronous mode:
+                      00043 ;                               1 = Send Sync Break on next transmission (cleared by hardware upon compl
+                            etion)
+                      00044 ;               -->             0 = Sync Break transmission completed
+                      00045 ;                       Synchronous mode:
+                      00046 ;                               Don’t care
+                      00047 ;               bit 2 BRGH: High Baud Rate Select bit
+                      00048 ;                       Asynchronous mode:
+                      00049 ;               -->             1 = High speed
+                      00050 ;                               0 = Low speed
+                      00051 ;                       Synchronous mode:
+                      00052 ;                               Unused in this mode
+                      00053 ;               bit 1 TRMT: Transmit Shift Register Status bit
+                      00054 ;                       1 = TSR empty
+                      00055 ;               X       0 = TSR full
+                      00056 ;               bit 0 TX9D: Ninth bit of Transmit Data
+                      00057 ;               X       Can be address/data bit or a parity bit.
+                      00058 
+                      00059 
+  00000090            00060 RCSTA_INIT      =       B'10010000'
+                      00061 ;               bit 7 SPEN: Serial Port Enable bit
+                      00062 ;               -->     1 = Serial port enabled (configures RX/DT and TX/CK pins as serial port pins)
+                      00063 ;                       0 = Serial port disabled (held in Reset)
+                      00064 ;               bit 6 RX9: 9-bit Receive Enable bit
+                      00065 ;                       1 = Selects 9-bit reception
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE 14
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00066 ;               -->     0 = Selects 8-bit reception
+                      00067 ;               bit 5 SREN: Single Receive Enable bit
+                      00068 ;                       Asynchronous mode:
+                      00069 ;               -->             Don’t care
+                      00070 ;                       Synchronous mode – Master:
+                      00071 ;                               1 = Enables single receive
+                      00072 ;                               0 = Disables single receive
+                      00073 ;                               This bit is cleared after reception is complete.
+                      00074 ;                       Synchronous mode – Slave
+                      00075 ;                               Don’t care
+                      00076 ;               bit 4 CREN: Continuous Receive Enable bit
+                      00077 ;                       Asynchronous mode:
+                      00078 ;               -->             1 = Enables receiver
+                      00079 ;                               0 = Disables receiver
+                      00080 ;                       Synchronous mode:
+                      00081 ;                               1 = Enables continuous receive until enable bit CREN is cleared (CREN ov
+                            errides SREN)
+                      00082 ;                               0 = Disables continuous receive
+                      00083 ;               bit 3 ADDEN: Address Detect Enable bit
+                      00084 ;                       Asynchronous mode 9-bit (RX9 = 1):
+                      00085 ;                               1 = Enables address detection, enable interrupt and load the receive buf
+                            fer when RSR<8> is set
+                      00086 ;                               0 = Disables address detection, all bytes are received and ninth bit can
+                             be used as parity bit
+                      00087 ;                       Asynchronous mode 8-bit (RX9 = 0):
+                      00088 ;               -->             Don’t care
+                      00089 ;               bit 2 FERR: Framing Error bit
+                      00090 ;                       1 = Framing error (can be updated by reading RCREG register and receive next val
+                            id byte)
+                      00091 ;               X       0 = No framing error
+                      00092 ;               bit 1 OERR: Overrun Error bit
+                      00093 ;                       1 = Overrun error (can be cleared by clearing bit CREN)
+                      00094 ;               X       0 = No overrun error
+                      00095 ;               bit 0 RX9D: Ninth bit of Received Data
+                      00096 ;               X       This can be address/data bit or a parity bit and must be calculated by user firm
+                            ware.
+                      00097 
+                      00098 
+  00000008            00099 BAUDCTL_INIT            =       B'00001000'
+                      00100 ;               bit 7 ABDOVF: Auto-Baud Detect Overflow bit
+                      00101 ;                       Asynchronous mode:
+                      00102 ;                               1 = Auto-baud timer overflowed
+                      00103 ;               X               0 = Auto-baud timer did not overflow
+                      00104 ;                       Synchronous mode:
+                      00105 ;                               Don’t care
+                      00106 ;               bit 6 RCIDL: Receive Idle Flag bit
+                      00107 ;                       Asynchronous mode:
+                      00108 ;                               1 = Receiver is Idle
+                      00109 ;               X               0 = Start bit has been received and the receiver is receiving
+                      00110 ;                       Synchronous mode:
+                      00111 ;                               Don’t care
+                      00112 ;               bit 5 Unimplemented: Read as ‘0’
+                      00113 ;               bit 4 SCKP: Synchronous Clock Polarity Select bit
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE 15
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00114 ;                       Asynchronous mode:
+                      00115 ;                               1 = Transmit inverted data to the RB7/TX/CK pin
+                      00116 ;               -->             0 = Transmit non-inverted data to the RB7/TX/CK pin
+                      00117 ;                       Synchronous mode:
+                      00118 ;                               1 = Data is clocked on rising edge of the clock
+                      00119 ;                               0 = Data is clocked on falling edge of the clock
+                      00120 ;               bit 3 BRG16: 16-bit Baud Rate Generator bit
+                      00121 ;               -->     1 = 16-bit Baud Rate Generator is used
+                      00122 ;                       0 = 8-bit Baud Rate Generator is used
+                      00123 ;               bit 2 Unimplemented: Read as ‘0’
+                      00124 ;               bit 1 WUE: Wake-up Enable bit
+                      00125 ;                       Asynchronous mode:
+                      00126 ;                               1 = Receiver is waiting for a falling edge. No character will be receive
+                            d byte RCIF will be set. WUE will
+                      00127 ;                                       automatically clear after RCIF is set.
+                      00128 ;               -->             0 = Receiver is operating normally
+                      00129 ;                       Synchronous mode:
+                      00130 ;                               Don’t care
+                      00131 ;               bit 0 ABDEN: Auto-Baud Detect Enable bit
+                      00132 ;                       Asynchronous mode:
+                      00133 ;                               1 = Auto-Baud Detect mode is enabled (clears when auto-baud is complete)
+                      00134 ;               -->             0 = Auto-Baud Detect mode is disabled
+                      00135 ;                       Synchronous mode:
+                      00136 ;                               Don’t care
+                      00137 
+                      00138 
+  0000001F            00139 BAUD_REG_INIT   =       31
+  0000001F            00140 SPBRG_INIT      =       LOW(BAUD_REG_INIT)
+  00000000            00141 SPBRGH_INIT     =       HIGH(BAUD_REG_INIT)
+                      00142 
+                      00143 
+                      00144 ; TODO
+                      00145 ;       if (TXSTA_INIT & (1<<SYNC)) > 0
+                      00146 ;               #define alma    0x12
+                      00147 ;       else
+                      00148 ;               #define alma    0x23
+                      00149 ;       endif
+                      00150 
+                      00131                 #include        "PWM.h"
+                      00001                 array   szint_r,8,0     ;pwm interval (EZ A SORREND MARAD!)
+                          M         errorlevel -207
+                          M         if 0==    0
+                          M 
+                          M                 cblock  _RAM_B0
+  00000028                M szint_r:8
+                          M                 endc
+  00000030                M                 _RAM_B0+=8
+                          M         endif           
+                          M         if 0==    1
+                          M                 cblock  _RAM_B1
+                          M szint_r:8
+                          M                 endc
+                          M                 _RAM_B1+=8
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE 16
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                          M         endif
+                          M         if 0==    2
+                          M                 cblock  _RAM_B2
+                          M szint_r:8
+                          M                 endc
+                          M                 _RAM_B2+=8
+                          M         endif 
+                          M         if 0==    3
+                          M                 cblock  _RAM_B3
+                          M szint_r:8
+                          M                 endc
+                          M                 _RAM_B3+=8
+                          M         endif
+                          M         errorlevel +207
+                      00002                 array   szint_g,8,0     ;pwm interval (EZ A SORREND MARAD!)
+                          M         errorlevel -207
+                          M         if 0==    0
+                          M 
+                          M                 cblock  _RAM_B0
+  00000030                M szint_g:8
+                          M                 endc
+  00000038                M                 _RAM_B0+=8
+                          M         endif           
+                          M         if 0==    1
+                          M                 cblock  _RAM_B1
+                          M szint_g:8
+                          M                 endc
+                          M                 _RAM_B1+=8
+                          M         endif
+                          M         if 0==    2
+                          M                 cblock  _RAM_B2
+                          M szint_g:8
+                          M                 endc
+                          M                 _RAM_B2+=8
+                          M         endif 
+                          M         if 0==    3
+                          M                 cblock  _RAM_B3
+                          M szint_g:8
+                          M                 endc
+                          M                 _RAM_B3+=8
+                          M         endif
+                          M         errorlevel +207
+                      00003                 array   szint_b,8,0     ;pwm interval (EZ A SORREND MARAD!)
+                          M         errorlevel -207
+                          M         if 0==    0
+                          M 
+                          M                 cblock  _RAM_B0
+  00000038                M szint_b:8
+                          M                 endc
+  00000040                M                 _RAM_B0+=8
+                          M         endif           
+                          M         if 0==    1
+                          M                 cblock  _RAM_B1
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE 17
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                          M szint_b:8
+                          M                 endc
+                          M                 _RAM_B1+=8
+                          M         endif
+                          M         if 0==    2
+                          M                 cblock  _RAM_B2
+                          M szint_b:8
+                          M                 endc
+                          M                 _RAM_B2+=8
+                          M         endif 
+                          M         if 0==    3
+                          M                 cblock  _RAM_B3
+                          M szint_b:8
+                          M                 endc
+                          M                 _RAM_B3+=8
+                          M         endif
+                          M         errorlevel +207
+                      00004                 array   fenyero,12,0    ;3 bit fenyero (rgb*4pixel)
+                          M         errorlevel -207
+                          M         if 0==    0
+                          M 
+                          M                 cblock  _RAM_B0
+  00000040                M fenyero:12
+                          M                 endc
+  0000004C                M                 _RAM_B0+=12
+                          M         endif           
+                          M         if 0==    1
+                          M                 cblock  _RAM_B1
+                          M fenyero:12
+                          M                 endc
+                          M                 _RAM_B1+=12
+                          M         endif
+                          M         if 0==    2
+                          M                 cblock  _RAM_B2
+                          M fenyero:12
+                          M                 endc
+                          M                 _RAM_B2+=12
+                          M         endif 
+                          M         if 0==    3
+                          M                 cblock  _RAM_B3
+                          M fenyero:12
+                          M                 endc
+                          M                 _RAM_B3+=12
+                          M         endif
+                          M         errorlevel +207
+                      00005                 byte    pwm_cnt,0
+                          M         errorlevel -207
+                          M 
+                          M         if 0==    0
+                          M                 cblock  _RAM_B0
+  0000004C                M pwm_cnt 
+                          M                 endc
+  0000004D                M                 _RAM_B0++
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE 18
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                          M         endif           
+                          M         if 0==    1
+                          M                 cblock  _RAM_B1
+                          M pwm_cnt 
+                          M                 endc
+                          M                 _RAM_B1++
+                          M         endif
+                          M         if 0==    2
+                          M                 cblock  _RAM_B2
+                          M pwm_cnt 
+                          M                 endc
+                          M                 _RAM_B2++
+                          M         endif 
+                          M         if 0==    3
+                          M                 cblock  _RAM_B3
+                          M pwm_cnt 
+                          M                 endc
+                          M                 _RAM_B3++
+                          M         endif
+                          M         errorlevel +207
+                      00006                 byte    pwm_cnt_shift,0
+                          M         errorlevel -207
+                          M 
+                          M         if 0==    0
+                          M                 cblock  _RAM_B0
+  0000004D                M pwm_cnt_shift 
+                          M                 endc
+  0000004E                M                 _RAM_B0++
+                          M         endif           
+                          M         if 0==    1
+                          M                 cblock  _RAM_B1
+                          M pwm_cnt_shift 
+                          M                 endc
+                          M                 _RAM_B1++
+                          M         endif
+                          M         if 0==    2
+                          M                 cblock  _RAM_B2
+                          M pwm_cnt_shift 
+                          M                 endc
+                          M                 _RAM_B2++
+                          M         endif 
+                          M         if 0==    3
+                          M                 cblock  _RAM_B3
+                          M pwm_cnt_shift 
+                          M                 endc
+                          M                 _RAM_B3++
+                          M         endif
+                          M         errorlevel +207
+                      00007 
+  00000010            00008 PWM_SHIFT       =       64/4
+                      00009 
+                      00010 #define         PORT_P0R        PORTA
+                      00011 #define         PORT_P0G        PORTA
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE 19
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00012 #define         PORT_P0B        PORTA
+                      00013 
+                      00014 #define         PORT_P1R        PORTA
+                      00015 #define         PORT_P1G        PORTA
+                      00016 #define         PORT_P1B        PORTA
+                      00017 
+                      00018 #define         PORT_P2R        PORTC
+                      00019 #define         PORT_P2G        PORTC
+                      00020 #define         PORT_P2B        PORTC
+                      00021 
+                      00022 #define         PORT_P3R        PORTC
+                      00023 #define         PORT_P3G        PORTC
+                      00024 #define         PORT_P3B        PORTC
+                      00025 
+                      00026 #define         BIT_P0R         0
+                      00027 #define         BIT_P0G         2
+                      00028 #define         BIT_P0B         1
+                      00029 
+                      00030 #define         BIT_P1R         5
+                      00031 #define         BIT_P1G         4
+                      00032 #define         BIT_P1B         3
+                      00033 
+                      00034 #define         BIT_P2R         0
+                      00035 #define         BIT_P2G         5
+                      00036 #define         BIT_P2B         4
+                      00037 
+                      00038 #define         BIT_P3R         3
+                      00039 #define         BIT_P3G         2
+                      00040 #define         BIT_P3B         1
+                      00041 
+                      00042 
+                      00043 
+                      00132 ;------------------------------------------
+                      00133                 #include        "PWM.asm"
+002F                  00001 Init_PWM_Control
+002F   01C0           00002                 clrf    fenyero
+0030   01C1           00003                 clrf    fenyero+1
+0031   01C2           00004                 clrf    fenyero+2
+0032   01C3           00005                 clrf    fenyero+3
+0033   01C4           00006                 clrf    fenyero+4
+0034   01C5           00007                 clrf    fenyero+5
+0035   01C6           00008                 clrf    fenyero+6
+0036   01C7           00009                 clrf    fenyero+7
+0037   01C8           00010                 clrf    fenyero+8
+0038   01C9           00011                 clrf    fenyero+9
+0039   01CA           00012                 clrf    fenyero+10
+003A   01CB           00013                 clrf    fenyero+11
+                      00014 
+003B   3000           00015                 movlw   0x00
+003C   00A8           00016                 movwf   szint_r
+003D   00B0           00017                 movwf   szint_g
+003E   00B8           00018                 movwf   szint_b
+003F   3001           00019                 movlw   0x01
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE 20
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0040   00A9           00020                 movwf   szint_r+1
+0041   00B1           00021                 movwf   szint_g+1
+0042   00B9           00022                 movwf   szint_b+1
+0043   3002           00023                 movlw   0x02
+0044   00AA           00024                 movwf   szint_r+2
+0045   00B2           00025                 movwf   szint_g+2
+0046   00BA           00026                 movwf   szint_b+2
+0047   3004           00027                 movlw   0x04
+0048   00AB           00028                 movwf   szint_r+3
+0049   00B3           00029                 movwf   szint_g+3
+004A   00BB           00030                 movwf   szint_b+3
+004B   3008           00031                 movlw   0x08
+004C   00AC           00032                 movwf   szint_r+4
+004D   00B4           00033                 movwf   szint_g+4
+004E   00BC           00034                 movwf   szint_b+4
+004F   3010           00035                 movlw   0x10
+0050   00AD           00036                 movwf   szint_r+5
+0051   00B5           00037                 movwf   szint_g+5
+0052   00BD           00038                 movwf   szint_b+5
+0053   3020           00039                 movlw   0x20
+0054   00AE           00040                 movwf   szint_r+6
+0055   00B6           00041                 movwf   szint_g+6
+0056   00BE           00042                 movwf   szint_b+6
+0057   3040           00043                 movlw   0x40
+0058   00AF           00044                 movwf   szint_r+7
+0059   00B7           00045                 movwf   szint_g+7
+005A   00BF           00046                 movwf   szint_b+7
+                      00047                         
+005B   01CC           00048                 clrf    pwm_cnt
+005C   01CD           00049                 clrf    pwm_cnt_shift
+                      00050 
+005D   0008           00051                 return
+                      00052 
+005E                  00053 PWM_Control
+005E   0000           00054                 nop
+005F   084C           00055                 movfw   pwm_cnt         ;pwm_cnt másolása a pwm_cnt_shift-be
+0060   00CD           00056                 movwf   pwm_cnt_shift
+                      00057 
+0061   1383           00058                 bcf     STATUS,IRP              ;bank0 indirect
+0062   3040           00059                 movlw   fenyero                 ;INDF->fenyero[0]
+0063   0084           00060                 movwf   FSR
+                      00061 
+                      00062 ;---Pixel-0-Red
+0064   0800           00063                 movfw   INDF
+0065   024D           00064                 subwf   pwm_cnt_shift,w         ;cnt - feny[0]
+0066   1C03           00065                 sc
+0067   1405           00066                 bsf     PORT_P0R,BIT_P0R        ;C=0 (feny[0] > cnt)
+0068   1803           00067                 snc
+0069   1005           00068                 bcf     PORT_P0R,BIT_P0R        ;C=1 (feny[0] <= cnt)
+006A   0A84           00069                 incf    FSR,f                   ;INDF->fenyero[1]
+                      00070 ;---Pixel-0-Green
+006B   0800           00071                 movfw   INDF
+006C   024D           00072                 subwf   pwm_cnt_shift,w         ;cnt - feny[1]
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE 21
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+006D   1C03           00073                 sc
+006E   1505           00074                 bsf     PORT_P0G,BIT_P0G        ;C=0 (feny[1] > cnt)
+006F   1803           00075                 snc
+0070   1105           00076                 bcf     PORT_P0G,BIT_P0G        ;C=1 (feny[1] <= cnt)
+0071   0A84           00077                 incf    FSR,f                   ;INDF->fenyero[2]
+                      00078 ;---Pixel-0-Blue
+0072   0800           00079                 movfw   INDF
+0073   024D           00080                 subwf   pwm_cnt_shift,w         ;cnt - feny[2]
+0074   1C03           00081                 sc
+0075   1485           00082                 bsf     PORT_P0B,BIT_P0B        ;C=0 (feny[2] > cnt)
+0076   1803           00083                 snc
+0077   1085           00084                 bcf     PORT_P0B,BIT_P0B        ;C=1 (feny[2] <= cnt)
+0078   0A84           00085                 incf    FSR,f                   ;INDF->fenyero[3]
+0079   3010           00086                 movlw   PWM_SHIFT               ;PWM counter igaítás (eltolva kapcsolgatjuk a paneleket)
+007A   02CD           00087                 subwf   pwm_cnt_shift,f
+007B   303F           00088                 movlw   0x3F
+007C   05CD           00089                 andwf   pwm_cnt_shift,f
+                      00090 
+                      00091 ;---Pixel-1-Red         (Pontosan ugyanaz mint feljebb, csak másik panelre)
+007D   0800           00092                 movfw   INDF
+007E   024D           00093                 subwf   pwm_cnt_shift,w
+007F   1C03           00094                 sc
+0080   1685           00095                 bsf     PORT_P1R,BIT_P1R
+0081   1803           00096                 snc
+0082   1285           00097                 bcf     PORT_P1R,BIT_P1R
+0083   0A84           00098                 incf    FSR,f
+                      00099 ;---Pixel-1-Green       (Pontosan ugyanaz mint feljebb, csak másik panelre)
+0084   0800           00100                 movfw   INDF
+0085   024D           00101                 subwf   pwm_cnt_shift,w
+0086   1C03           00102                 sc
+0087   1605           00103                 bsf     PORT_P1G,BIT_P1G
+0088   1803           00104                 snc
+0089   1205           00105                 bcf     PORT_P1G,BIT_P1G
+008A   0A84           00106                 incf    FSR,f
+                      00107 ;---Pixel-1-Blue        (Pontosan ugyanaz mint feljebb, csak másik panelre)
+008B   0800           00108                 movfw   INDF
+008C   024D           00109                 subwf   pwm_cnt_shift,w
+008D   1C03           00110                 sc
+008E   1585           00111                 bsf     PORT_P1B,BIT_P1B
+008F   1803           00112                 snc
+0090   1185           00113                 bcf     PORT_P1B,BIT_P1B
+0091   0A84           00114                 incf    FSR,f
+0092   3010           00115                 movlw   PWM_SHIFT
+0093   02CD           00116                 subwf   pwm_cnt_shift,f
+0094   303F           00117                 movlw   0x3F
+0095   05CD           00118                 andwf   pwm_cnt_shift,f
+                      00119 
+                      00120 ;---Pixel-2-Red         (Pontosan ugyanaz mint feljebb, csak másik panelre)
+0096   0800           00121                 movfw   INDF
+0097   024D           00122                 subwf   pwm_cnt_shift,w
+0098   1C03           00123                 sc
+0099   1407           00124                 bsf     PORT_P2R,BIT_P2R
+009A   1803           00125                 snc
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE 22
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+009B   1007           00126                 bcf     PORT_P2R,BIT_P2R
+009C   0A84           00127                 incf    FSR,f
+                      00128 ;---Pixel-2-Green       (Pontosan ugyanaz mint feljebb, csak másik panelre)
+009D   0800           00129                 movfw   INDF
+009E   024D           00130                 subwf   pwm_cnt_shift,w
+009F   1C03           00131                 sc
+00A0   1687           00132                 bsf     PORT_P2G,BIT_P2G
+00A1   1803           00133                 snc
+00A2   1287           00134                 bcf     PORT_P2G,BIT_P2G
+00A3   0A84           00135                 incf    FSR,f
+                      00136 ;---Pixel-2-Blue        (Pontosan ugyanaz mint feljebb, csak másik panelre)
+00A4   0800           00137                 movfw   INDF
+00A5   024D           00138                 subwf   pwm_cnt_shift,w
+00A6   1C03           00139                 sc
+00A7   1607           00140                 bsf     PORT_P2B,BIT_P2B
+00A8   1803           00141                 snc
+00A9   1207           00142                 bcf     PORT_P2B,BIT_P2B
+00AA   0A84           00143                 incf    FSR,f
+00AB   3010           00144                 movlw   PWM_SHIFT
+00AC   02CD           00145                 subwf   pwm_cnt_shift,f
+00AD   303F           00146                 movlw   0x3F
+00AE   05CD           00147                 andwf   pwm_cnt_shift,f
+                      00148 
+                      00149 ;---Pixel-3-Red         (Pontosan ugyanaz mint feljebb, csak másik panelre)
+00AF   0800           00150                 movfw   INDF
+00B0   024D           00151                 subwf   pwm_cnt_shift,w
+00B1   1C03           00152                 sc
+00B2   1587           00153                 bsf     PORT_P3R,BIT_P3R
+00B3   1803           00154                 snc
+00B4   1187           00155                 bcf     PORT_P3R,BIT_P3R
+00B5   0A84           00156                 incf    FSR,f
+                      00157 ;---Pixel-3-Green       (Pontosan ugyanaz mint feljebb, csak másik panelre)
+00B6   0800           00158                 movfw   INDF
+00B7   024D           00159                 subwf   pwm_cnt_shift,w
+00B8   1C03           00160                 sc
+00B9   1507           00161                 bsf     PORT_P3G,BIT_P3G
+00BA   1803           00162                 snc
+00BB   1107           00163                 bcf     PORT_P3G,BIT_P3G
+00BC   0A84           00164                 incf    FSR,f
+                      00165 ;---Pixel-3-Blue        (Pontosan ugyanaz mint feljebb, csak másik panelre)
+00BD   0800           00166                 movfw   INDF
+00BE   024D           00167                 subwf   pwm_cnt_shift,w
+00BF   1C03           00168                 sc
+00C0   1487           00169                 bsf     PORT_P3B,BIT_P3B
+00C1   1803           00170                 snc
+00C2   1087           00171                 bcf     PORT_P3B,BIT_P3B
+00C3   0A84           00172                 incf    FSR,f
+00C4   3010           00173                 movlw   PWM_SHIFT
+00C5   02CD           00174                 subwf   pwm_cnt_shift,f
+00C6   303F           00175                 movlw   0x3F
+00C7   05CD           00176                 andwf   pwm_cnt_shift,f
+                      00177 
+00C8   0ACC           00178                 incf    pwm_cnt,f
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE 23
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+00C9   1B4C           00179                 btfsc   pwm_cnt,6
+00CA   01CC           00180                 clrf    pwm_cnt
+00CB   0008           00181                 return
+                      00182 
+                      00183 
+                      00184 
+                      00185 
+                      00186 
+                      00187 
+                      00188 
+                      00189 
+                      00190 
+                      00134                 #include        "usart.asm"
+                      00001 
+00CC                  00002 USART_Init ;(see usart.h)
+00CC   1683 1303      00003                 BANKSEL TXSTA
+00CE   3024           00004                 movlw   TXSTA_INIT
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+00CF   0098           00005                 movwf   TXSTA
+00D0   1283 1303      00006                 BANKSEL RCSTA
+00D2   3090           00007                 movlw   RCSTA_INIT
+00D3   0098           00008                 movwf   RCSTA
+00D4   1683 1703      00009                 BANKSEL BAUDCTL
+00D6   3008           00010                 movlw   BAUDCTL_INIT
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+00D7   0087           00011                 movwf   BAUDCTL
+00D8   1683 1303      00012                 BANKSEL SPBRG
+00DA   301F           00013                 movlw   SPBRG_INIT
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+00DB   0099           00014                 movwf   SPBRG
+00DC   1683 1303      00015                 BANKSEL SPBRGH
+00DE   3000           00016                 movlw   SPBRGH_INIT
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+00DF   009A           00017                 movwf   SPBRGH
+                      00018                 ;RC7-RX and RC6-TX
+00E0   1683 1303      00019                 BANKSEL PIE1
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+00E2   128C           00020                 bcf     PIE1,RCIE       ;enable RX interrupt
+                      00021 
+                      00022                 bank0
+                          M         EXPAND
+00E5   01A1           00023                 clrf    RX_TMP
+00E6   01A2           00024                 clrf    usart_rx_mode
+00E7   01A3           00025                 clrf    usart_rx_id
+00E8   01A4           00026                 clrf    usart_rx_fenyero
+00E9   01A5           00027                 clrf    usart_rx_ph_cnt
+00EA   01A6           00028                 clrf    fenyero_szin
+00EB   01A7           00029                 clrf    usart_status
+00EC   0008           00030                 return
+                      00031 
+00ED                  00032 USART_Recv
+00ED   081A           00033                 movfw   RCREG           ;Read uart buffer
+00EE   00A1           00034                 movwf   RX_TMP          ;store in temp register
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE 24
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+                      00035 
+00EF   3907           00036                 andlw   0x07
+00F0   00A4           00037                 movwf   usart_rx_fenyero;alsó 3 bit: fenyero
+00F1   0E21           00038                 swapf   RX_TMP,w
+00F2   390F           00039                 andlw   0x0F
+00F3   00A3           00040                 movwf   usart_rx_id     ;felsõ 4 bit: id
+                      00041 
+00F4   30F5           00042                 movlw   USART_RX_ACK_MARKER
+00F5   0621           00043                 xorwf   RX_TMP,w
+00F6   1903           00044                 snz
+00F7   14A7           00045                 bsf     usart_sendAck
+                      00046 
+                      00047 ;switch (usart_rx_mode)
+00F8                  00048 USART_Recv_Modes
+00F8   3000           00049                 movlw   0
+00F9   0622           00050                 xorwf   usart_rx_mode,w
+00FA   1903           00051                 snz
+00FB   2906           00052                 goto    USART_Mode_0    ;case 0: uninitialized
+00FC   3001           00053                 movlw   1
+00FD   0622           00054                 xorwf   usart_rx_mode,w
+00FE   1903           00055                 snz
+00FF   290E           00056                 goto    USART_Mode_1    ;case 1: normal mode
+0100   3002           00057                 movlw   2
+0101   0622           00058                 xorwf   usart_rx_mode,w
+0102   1903           00059                 snz
+0103   2927           00060                 goto    USART_Mode_2
+                      00061 
+0104   01A2           00062                 clrf    usart_rx_mode
+0105   0008           00063                 return
+                      00064 ;---------------
+0106                  00065 USART_Mode_0
+0106   30F0           00066                 movlw   USART_INIT_MARKER
+0107   0621           00067                 xorwf   RX_TMP,w
+0108   1D03           00068                 sz
+0109   0008           00069                 return
+010A   1427           00070                 bsf     usart_sendVersion
+010B   3001           00071                 movlw   1
+010C   00A2           00072                 movwf   usart_rx_mode
+010D   0008           00073                 return
+                      00074 ;---------------
+010E                  00075 USART_Mode_1
+010E   300E           00076                 movlw   USART_CONFIG_MARKER
+010F   0623           00077                 xorwf   usart_rx_id,w
+0110   1903           00078                 snz
+0111   2917           00079                 goto    USART_Mode_1_ToConfig   ;usart_rx_id = 14
+                      00080 
+0112   300C           00081                 movlw   12
+0113   0223           00082                 subwf   usart_rx_id,w
+0114   1C03           00083                 sc
+0115   291B           00084                 goto    USART_Mode_1_Fenyero    ;usart_rx_id < 12
+0116   0008           00085                 return
+                      00086 ;-----
+0117                  00087 USART_Mode_1_ToConfig
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE 25
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0117   3002           00088                 movlw   2
+0118   00A2           00089                 movwf   usart_rx_mode           ;move to config mode
+0119   01A5           00090                 clrf    usart_rx_ph_cnt
+011A   0008           00091                 return
+                      00092 ;-----
+011B                  00093 USART_Mode_1_Fenyero
+011B   0823           00094                 movfw   usart_rx_id             ;fenyero_szin: szint_r v szint_g v szint_b
+011C   201D           00095                 call    PWM_Szin_Table
+                      00096 
+011D   0724           00097                 addwf   usart_rx_fenyero,w
+011E   0084           00098                 movwf   FSR
+011F   0800           00099                 movfw   INDF
+0120   00A4           00100                 movwf   usart_rx_fenyero        ;itt van a tényleges pwm fényerõ
+                      00101 
+0121   3040           00102                 movlw   fenyero
+0122   0723           00103                 addwf   usart_rx_id,w
+0123   0084           00104                 movwf   FSR
+0124   0824           00105                 movfw   usart_rx_fenyero
+0125   0080           00106                 movwf   INDF
+                      00107 
+0126   0008           00108                 return
+                      00109 ;---------------
+0127                  00110 USART_Mode_2
+0127   300F           00111                 movlw   15
+0128   0623           00112                 xorwf   usart_rx_id,w   ;usart_rx_id = 15?
+0129   1903           00113                 snz
+012A   2937           00114                 goto    USART_Mode_2_To1;igen, vissza normál módba
+                      00115 
+012B   3018           00116                 movlw   24
+012C   0225           00117                 subwf   usart_rx_ph_cnt,w
+012D   1C03           00118                 sc
+012E   0008           00119                 return                  ;usart_rx_ph_cnt >= 24 -> return
+                      00120 
+012F   3028           00121                 movlw   szint_r         ;usart_rx_ph_cnt < 24
+0130   0084           00122                 movwf   FSR             ;load szint_r
+0131   0825           00123                 movfw   usart_rx_ph_cnt
+0132   0784           00124                 addwf   FSR,f           ;select szint_r[usart_rx_ph_cnt]
+0133   0821           00125                 movfw   RX_TMP
+0134   0080           00126                 movwf   INDF            ;szint_r[usart_rx_ph_cnt] = Received byte
+                      00127 
+0135   0AA5           00128                 incf    usart_rx_ph_cnt,f
+0136   0008           00129                 return
+                      00130 ;-----
+0137                  00131 USART_Mode_2_To1
+0137   3001           00132                 movlw   1
+0138   00A2           00133                 movwf   usart_rx_mode
+0139   0008           00134                 return
+                      00135 
+                      00136 
+                      00137 ;--------------------------------------------------------------------------------
+                      00138 
+013A                  00139 USART_Task
+013A   1E0C           00140                 btfss   PIR1,TXIF
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE 26
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+013B   0008           00141                 return
+013C   1827           00142                 btfsc   usart_sendVersion
+013D   2941           00143                 goto    USART_Task_Ver
+013E   18A7           00144                 btfsc   usart_sendAck
+013F   295D           00145                 goto    USART_Task_Ack
+0140   0008           00146                 return
+                      00147 
+0141                  00148 USART_Task_Ver
+0141   1027           00149                 bcf     usart_sendVersion
+0142   3000           00150                 movlw   0
+0143   219A           00151                 call    EE_Read_Data
+0144   0099           00152                 movwf   TXREG
+0145   0000           00153                 nop
+0146   0000           00154                 nop
+0147                  00155 USART_Task_Ver1
+0147   1E0C           00156                 btfss   PIR1,TXIF
+0148   2947           00157                 goto    USART_Task_Ver1
+0149   3001           00158                 movlw   1
+014A   219A           00159                 call    EE_Read_Data
+014B   0099           00160                 movwf   TXREG
+014C   0000           00161                 nop
+014D   0000           00162                 nop
+014E                  00163 USART_Task_Ver2
+014E   1E0C           00164                 btfss   PIR1,TXIF
+014F   294E           00165                 goto    USART_Task_Ver2
+0150   3002           00166                 movlw   2
+0151   219A           00167                 call    EE_Read_Data
+0152   0099           00168                 movwf   TXREG
+0153   0000           00169                 nop
+0154   0000           00170                 nop
+0155                  00171 USART_Task_Ver3
+0155   1E0C           00172                 btfss   PIR1,TXIF
+0156   2955           00173                 goto    USART_Task_Ver3
+0157   3003           00174                 movlw   3
+0158   219A           00175                 call    EE_Read_Data
+0159   0099           00176                 movwf   TXREG
+015A   0000           00177                 nop
+015B   0000           00178                 nop
+015C   0008           00179                 return
+                      00180 
+015D                  00181 USART_Task_Ack
+015D   10A7           00182                 bcf     usart_sendAck
+015E   3041           00183                 movlw   USART_TX_ACK_BASE
+015F   0722           00184                 addwf   usart_rx_mode,w
+0160   0099           00185                 movwf   TXREG
+0161   0008           00186                 return
+                      00187 
+                      00188 
+                      00135 ;******************************************************************************
+                      00136 ;*                                                                            *
+                      00137 ;*              INITIALIZING PERIPHERALS                                      *
+                      00138 ;*                                                                            *
+                      00139 ;******************************************************************************
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE 27
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0162                  00140 Start_Reset
+0162   0064           00141                 clrwdt
+                      00142 
+0163   1283 1303      00143                 BANKSEL PORTA   ;select bank
+0165   0185           00144                 clrf    PORTA   ;clear all ports
+0166   0186           00145                 clrf    PORTB
+0167   0187           00146                 clrf    PORTC
+                      00147 
+0168   1683 1303      00148                 BANKSEL TRISA
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+016A   0185           00149                 clrf    TRISA   ;output
+016B   30FF           00150                 movlw   0xFF
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+016C   0086           00151                 movwf   TRISB   ;input
+016D   3080           00152                 movlw   0x80
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+016E   0087           00153                 movwf   TRISC   ;output (except RC7 -> USART RX, but RCSTA,SPEN configs that)
+                      00154 
+016F   1683 1703      00155                 BANKSEL ANSEL   ;analóg: nem kell semmi
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0171   0188           00156                 clrf    ANSEL
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0172   0189           00157                 clrf    ANSELH
+                      00158 
+0173   1683 1303      00159                 BANKSEL OPTION_REG
+0175   3000           00160                 movlw   OPTION_REG_INIT ;see main.h
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+0176   0081           00161                 movwf   OPTION_REG
+                      00162 
+                      00163 #ifndef __DEBUG ;Debug-ban nincs watchdog
+                      00164                 BANKSEL WDTCON          ;Watchdog init
+                      00165                 movlw   WDTCON_INIT
+                      00166                 movwf   WDTCON
+                      00167 #endif
+0177   1283 1303      00168                 BANKSEL TMR0
+0179   3088           00169                 movlw   TMR0_INIT       ;Timer0 init
+017A   0081           00170                 movwf   TMR0
+017B   110B           00171                 bcf     INTCON,T0IF     ;Clear Timer0 IT flag
+017C   168B           00172                 bsf     INTCON,T0IE     ;Enable Timer0 Interrupt
+                      00173 
+                      00174 
+                      00175                 bank0
+                          M         EXPAND
+                      00176 ;-------------- GENERAL INITS
+017F   01A0           00177                 clrf    SystemTimer10ms
+                      00178 
+0180   20CC           00179                 call    USART_Init
+0181   202F           00180                 call    Init_PWM_Control
+                      00181 ;--------------
+                      00182 
+0182   170B           00183                 EN_PERIPH_IT    ;Enable peripheral interrupts
+0183   178B           00184                 EN_GLOBAL_IT    ;Enable global interrupts
+                      00185 
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE 28
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+0184   2985           00186                 goto    Main_Loop
+                      00187 
+                      00188 
+                      00189 ;******************************************************************************
+                      00190 ;*                                                                            *
+                      00191 ;*              MAIN PROGRAM LOOP                                             *
+                      00192 ;*                                                                            *
+                      00193 ;******************************************************************************
+0185                  00194 Main_Loop
+0185   0064           00195                 clrwdt          ;clear watchdog timer
+                      00196 
+0186   08A0           00197                 tstf    SystemTimer10ms ;timer lejárt?
+0187   1D03           00198                 sz
+0188   2995           00199                 goto    Main_Loop_end           ;nope, nincs tennivaló
+0189   309C           00200                 movlw   SYSTEM_TIMER_10MS_INIT  ;igen, timer init
+018A   00A0           00201                 movwf   SystemTimer10ms
+                      00202 
+                      00203 ;-------------- BEGIN 100ms tasks
+018B   3000           00204                 movlw   0
+018C   0622           00205                 xorwf   usart_rx_mode,w
+018D   1D03           00206                 sz
+018E   2995           00207                 goto    Main_Loop_end
+018F   0000           00208                 nop
+0190   3055           00209                 movlw   0x55
+0191   1E0C           00210                 btfss   PIR1,TXIF
+0192   2995           00211                 goto    Main_Loop_end
+0193   0099           00212                 movwf   TXREG
+0194   0000           00213                 nop
+                      00214 ;-------------- END 100ms
+                      00215 
+0195                  00216 Main_Loop_end
+                      00217                 bank0
+                          M         EXPAND
+0197   213A           00218                 call    USART_Task
+                      00219 
+0198   2985           00220                 goto    Main_Loop
+0199   2985           00221                 goto    Main_Loop
+                      00222 ;******************************************************************************
+                      00223 ;*                                                                            *
+                      00224 ;*              READ EEPROM DATA                                              *
+                      00225 ;*                                                                            *
+                      00226 ;******************************************************************************
+                      00227         ;parameter: WREG
+019A                  00228 EE_Read_Data
+019A   1283 1703      00229                 BANKSEL EEADR           ;
+                      00230 ;               MOVLW   DATA_EE_ADDR    ;
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+019C   008D           00231                 MOVWF   EEADR           ;Data Memory
+                      00232                                         ;Address to read
+019D   1683 1703      00233                 BANKSEL EECON1          ;
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+019F   138C           00234                 BCF     EECON1,EEPGD    ;Point to DATA memory
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE 29
+
+
+LOC  OBJECT CODE     LINE SOURCE TEXT
+  VALUE
+
+01A0   140C           00235                 BSF     EECON1,RD       ;EE Read
+01A1   1283 1703      00236                 BANKSEL EEDAT           ;
+Message[302]: Register in operand not in bank 0.  Ensure that bank bits are correct.
+01A3   080C           00237                 MOVF    EEDAT,W         ;W = EEDAT
+                      00238                 bank0
+                          M         EXPAND
+01A6   0008           00239                 RETURN
+                      00240 
+2100                  00241                 org     0x2100
+2100                  00242 EE_VERSION_ADDR
+2100   0076 0031 002E 00243                 de      "v1.0"
+       0030 
+                      00244 
+                      00245 
+                      00246 
+                      00247 
+                      00248 ;******************************************************************************
+                      00249 ;*   CHECK RAM USAGE                                                          *
+                      00250 ;******************************************************************************
+                      00251         if _RAM_B0>RAM_B0_END
+                      00252                 error    "Az BANK0-ba szánt változók nem férnek el!!!!"
+                      00253         endif
+Message[301]: MESSAGE: (Bank0 regs: 46/79)
+                      00254         messg   Bank0 regs: 46/79
+                      00255 
+                      00256         if _RAM_B1>RAM_B1_END
+                      00257                 error    "Az BANK1-ba szánt változók nem férnek el!!!!"
+                      00258         endif
+Message[301]: MESSAGE: (Bank1 regs: 0/31)
+                      00259         messg   Bank1 regs: 0/31
+                      00260 
+                      00261         end
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE 30
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+ABDEN                             00000000
+ABDOVF                            00000007
+ACKDT                             00000005
+ACKEN                             00000004
+ACKSTAT                           00000006
+ADCON0                            0000001F
+ADCON1                            0000009F
+ADCS0                             00000006
+ADCS1                             00000007
+ADDEN                             00000003
+ADFM                              00000007
+ADIE                              00000006
+ADIF                              00000006
+ADON                              00000000
+ADRESH                            0000001E
+ADRESL                            0000009E
+ANS0                              00000000
+ANS1                              00000001
+ANS10                             00000002
+ANS11                             00000003
+ANS12                             00000004
+ANS13                             00000005
+ANS2                              00000002
+ANS3                              00000003
+ANS4                              00000004
+ANS8                              00000000
+ANS9                              00000001
+ANSEL                             00000188
+ANSELH                            00000189
+BAUDCTL                           00000187
+BAUDCTL_INIT                      00000008
+BAUD_REG_INIT                     0000001F
+BCLIE                             00000003
+BCLIF                             00000003
+BF                                00000000
+BIT_P0B                           1
+BIT_P0G                           2
+BIT_P0R                           0
+BIT_P1B                           3
+BIT_P1G                           4
+BIT_P1R                           5
+BIT_P2B                           4
+BIT_P2G                           5
+BIT_P2R                           0
+BIT_P3B                           1
+BIT_P3G                           2
+BIT_P3R                           3
+BRG0                              00000000
+BRG1                              00000001
+BRG10                             00000002
+BRG11                             00000003
+BRG12                             00000004
+BRG13                             00000005
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE 31
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+BRG14                             00000006
+BRG15                             00000007
+BRG16                             00000003
+BRG2                              00000002
+BRG3                              00000003
+BRG4                              00000004
+BRG5                              00000005
+BRG6                              00000006
+BRG7                              00000007
+BRG8                              00000000
+BRG9                              00000001
+BRGH                              00000002
+C                                 00000000
+C1CH0                             00000000
+C1CH1                             00000001
+C1IE                              00000005
+C1IF                              00000005
+C1OE                              00000005
+C1ON                              00000007
+C1OUT                             00000006
+C1POL                             00000004
+C1R                               00000002
+C1RSEL                            00000005
+C1SEN                             00000005
+C2CH0                             00000000
+C2CH1                             00000001
+C2IE                              00000006
+C2IF                              00000006
+C2OE                              00000005
+C2ON                              00000007
+C2OUT                             00000006
+C2POL                             00000004
+C2R                               00000002
+C2REN                             00000004
+C2RSEL                            00000004
+C2SYNC                            00000000
+CCP1CON                           00000017
+CCP1IE                            00000002
+CCP1IF                            00000002
+CCP1M0                            00000000
+CCP1M1                            00000001
+CCP1M2                            00000002
+CCP1M3                            00000003
+CCP1X                             00000005
+CCP1Y                             00000004
+CCP2CON                           0000001D
+CCP2IE                            00000000
+CCP2IF                            00000000
+CCP2M0                            00000000
+CCP2M1                            00000001
+CCP2M2                            00000002
+CCP2M3                            00000003
+CCP2X                             00000005
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE 32
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+CCP2Y                             00000004
+CCPR1                             00000015
+CCPR1H                            00000016
+CCPR1L                            00000015
+CCPR2                             0000001B
+CCPR2H                            0000001C
+CCPR2L                            0000001B
+CHS0                              00000002
+CHS1                              00000003
+CHS2                              00000004
+CHS3                              00000005
+CKE                               00000006
+CKP                               00000004
+CM1CON0                           00000107
+CM2CON0                           00000108
+CM2CON1                           00000109
+CREN                              00000004
+CSRC                              00000007
+D                                 00000005
+DATA_ADDRESS                      00000005
+DC                                00000001
+DC1B0                             00000004
+DC1B1                             00000005
+DC2B0                             00000004
+DC2B1                             00000005
+DIS_GLOBAL_IT                     bcf     INTCON,GIE
+DIS_PERIPH_IT                     bcf     INTCON,PEIE
+D_A                               00000005
+D_NOT_A                           00000005
+ECCPAS                            0000009C
+ECCPAS0                           00000004
+ECCPAS1                           00000005
+ECCPAS2                           00000006
+ECCPASE                           00000007
+EEADR                             0000010D
+EEADRH                            0000010F
+EECON1                            0000018C
+EECON2                            0000018D
+EEDAT                             0000010C
+EEDATA                            0000010C
+EEDATH                            0000010E
+EEIE                              00000004
+EEIF                              00000004
+EEPGD                             00000007
+EE_Read_Data                      0000019A
+EE_VERSION_ADDR                   00002100
+EN_GLOBAL_IT                      bsf     INTCON,GIE
+EN_PERIPH_IT                      bsf     INTCON,PEIE
+F                                 00000001
+FERR                              00000002
+FSR                               00000004
+FVREN                             00000000
+GCEN                              00000007
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE 33
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+GIE                               00000007
+GO                                00000001
+GO_DONE                           00000001
+GO_NOT_DONE                       00000001
+HTS                               00000002
+I2C_DATA                          00000005
+I2C_READ                          00000002
+I2C_START                         00000003
+I2C_STOP                          00000004
+INDF                              00000000
+INTCON                            0000000B
+INTE                              00000004
+INTEDG                            00000006
+INTF                              00000001
+IOCB                              00000096
+IOCB0                             00000000
+IOCB1                             00000001
+IOCB2                             00000002
+IOCB3                             00000003
+IOCB4                             00000004
+IOCB5                             00000005
+IOCB6                             00000006
+IOCB7                             00000007
+IRCF0                             00000004
+IRCF1                             00000005
+IRCF2                             00000006
+IRP                               00000007
+ISR                               00000004
+IT_USART                          00000014
+Init_PWM_Control                  0000002F
+LTS                               00000001
+MC1OUT                            00000007
+MC2OUT                            00000006
+MSK                               00000093
+MSK0                              00000000
+MSK1                              00000001
+MSK2                              00000002
+MSK3                              00000003
+MSK4                              00000004
+MSK5                              00000005
+MSK6                              00000006
+MSK7                              00000007
+Main_Loop                         00000185
+Main_Loop_end                     00000195
+NOT_A                             00000005
+NOT_ADDRESS                       00000005
+NOT_BO                            00000000
+NOT_BOR                           00000000
+NOT_DONE                          00000001
+NOT_PD                            00000003
+NOT_POR                           00000001
+NOT_RBPU                          00000007
+NOT_RC8                           00000006
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE 34
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+NOT_T1SYNC                        00000002
+NOT_TO                            00000004
+NOT_TX8                           00000006
+NOT_W                             00000002
+NOT_WRITE                         00000002
+OERR                              00000001
+OPTION_REG                        00000081
+OPTION_REG_INIT                   00000000
+OSCCON                            0000008F
+OSCTUNE                           00000090
+OSFIE                             00000007
+OSFIF                             00000007
+OSTS                              00000003
+P                                 00000004
+P1M0                              00000006
+P1M1                              00000007
+PCL                               00000002
+PCLATH                            0000000A
+PCLATH_Save                       00000072
+PCON                              0000008E
+PDC0                              00000000
+PDC1                              00000001
+PDC2                              00000002
+PDC3                              00000003
+PDC4                              00000004
+PDC5                              00000005
+PDC6                              00000006
+PEIE                              00000006
+PEN                               00000002
+PIE1                              0000008C
+PIE2                              0000008D
+PIR1                              0000000C
+PIR2                              0000000D
+PORTA                             00000005
+PORTB                             00000006
+PORTC                             00000007
+PORTE                             00000009
+PORT_P0B                          PORTA
+PORT_P0G                          PORTA
+PORT_P0R                          PORTA
+PORT_P1B                          PORTA
+PORT_P1G                          PORTA
+PORT_P1R                          PORTA
+PORT_P2B                          PORTC
+PORT_P2G                          PORTC
+PORT_P2R                          PORTC
+PORT_P3B                          PORTC
+PORT_P3G                          PORTC
+PORT_P3R                          PORTC
+PR2                               00000092
+PRSEN                             00000007
+PS0                               00000000
+PS1                               00000001
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE 35
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+PS2                               00000002
+PSA                               00000003
+PSSAC0                            00000002
+PSSAC1                            00000003
+PSSBD0                            00000000
+PSSBD1                            00000001
+PSTRCON                           0000009D
+PULSR                             00000002
+PULSS                             00000003
+PWM1CON                           0000009B
+PWM_Control                       0000005E
+PWM_SHIFT                         00000010
+PWM_Szin_Table                    0000001D
+R                                 00000002
+RA0                               00000000
+RA1                               00000001
+RA2                               00000002
+RA3                               00000003
+RA4                               00000004
+RA5                               00000005
+RA6                               00000006
+RA7                               00000007
+RAM_B0_BEG                        00000020
+RAM_B0_END                        0000006F
+RAM_B1_BEG                        000000A0
+RAM_B1_END                        000000BF
+RB0                               00000000
+RB1                               00000001
+RB2                               00000002
+RB3                               00000003
+RB4                               00000004
+RB5                               00000005
+RB6                               00000006
+RB7                               00000007
+RBIE                              00000003
+RBIF                              00000000
+RC0                               00000000
+RC1                               00000001
+RC2                               00000002
+RC3                               00000003
+RC4                               00000004
+RC5                               00000005
+RC6                               00000006
+RC7                               00000007
+RC8_9                             00000006
+RC9                               00000006
+RCD8                              00000000
+RCEN                              00000003
+RCIDL                             00000006
+RCIE                              00000005
+RCIF                              00000005
+RCREG                             0000001A
+RCSTA                             00000018
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE 36
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+RCSTA_INIT                        00000090
+RD                                00000000
+RE3                               00000003
+READ_WRITE                        00000002
+RP0                               00000005
+RP1                               00000006
+RSEN                              00000001
+RX9                               00000006
+RX9D                              00000000
+RX_TMP                            00000021
+R_NOT_W                           00000002
+R_W                               00000002
+S                                 00000003
+SBOREN                            00000004
+SCKP                              00000004
+SCS                               00000000
+SEN                               00000000
+SENDB                             00000003
+SMP                               00000007
+SPBRG                             00000099
+SPBRGH                            0000009A
+SPBRGH_INIT                       00000000
+SPBRG_INIT                        0000001F
+SPEN                              00000007
+SR0                               00000006
+SR1                               00000007
+SRCON                             00000185
+SREN                              00000005
+SSPADD                            00000093
+SSPBUF                            00000013
+SSPCON                            00000014
+SSPCON2                           00000091
+SSPEN                             00000005
+SSPIE                             00000003
+SSPIF                             00000003
+SSPM0                             00000000
+SSPM1                             00000001
+SSPM2                             00000002
+SSPM3                             00000003
+SSPMSK                            00000093
+SSPOV                             00000006
+SSPSTAT                           00000094
+STATUS                            00000003
+STATUS_Save                       00000071
+STRA                              00000000
+STRB                              00000001
+STRC                              00000002
+STRD                              00000003
+STRSYNC                           00000004
+SUB16                             
+SWDTEN                            00000000
+SYNC                              00000004
+SYSTEM_TIMER_10MS_INIT            0000009C
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE 37
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+Start_Reset                       00000162
+SystemTimer10ms                   00000020
+T0CS                              00000005
+T0IE                              00000005
+T0IF                              00000002
+T0SE                              00000004
+T1CKPS0                           00000004
+T1CKPS1                           00000005
+T1CON                             00000010
+T1GINV                            00000007
+T1GIV                             00000007
+T1GSS                             00000001
+T1INSYNC                          00000002
+T1OSCEN                           00000003
+T1SYNC                            00000002
+T2CKPS0                           00000000
+T2CKPS1                           00000001
+T2CON                             00000012
+TIMER0_CYCLE                      00000100
+TMR0                              00000001
+TMR0IE                            00000005
+TMR0IF                            00000002
+TMR0_INIT                         00000088
+TMR1                              0000000E
+TMR1CS                            00000001
+TMR1GE                            00000006
+TMR1H                             0000000F
+TMR1IE                            00000000
+TMR1IF                            00000000
+TMR1L                             0000000E
+TMR1ON                            00000000
+TMR2                              00000011
+TMR2IE                            00000001
+TMR2IF                            00000001
+TMR2ON                            00000002
+TMR_DEC                           
+TMR_DEC_FSR                       
+TOUTPS0                           00000003
+TOUTPS1                           00000004
+TOUTPS2                           00000005
+TOUTPS3                           00000006
+TRISA                             00000085
+TRISA0                            00000000
+TRISA1                            00000001
+TRISA2                            00000002
+TRISA3                            00000003
+TRISA4                            00000004
+TRISA5                            00000005
+TRISA6                            00000006
+TRISA7                            00000007
+TRISB                             00000086
+TRISB0                            00000000
+TRISB1                            00000001
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE 38
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+TRISB2                            00000002
+TRISB3                            00000003
+TRISB4                            00000004
+TRISB5                            00000005
+TRISB6                            00000006
+TRISB7                            00000007
+TRISC                             00000087
+TRISC0                            00000000
+TRISC1                            00000001
+TRISC2                            00000002
+TRISC3                            00000003
+TRISC4                            00000004
+TRISC5                            00000005
+TRISC6                            00000006
+TRISC7                            00000007
+TRISE                             00000089
+TRISE3                            00000003
+TRMT                              00000001
+TUN0                              00000000
+TUN1                              00000001
+TUN2                              00000002
+TUN3                              00000003
+TUN4                              00000004
+TX8_9                             00000006
+TX9                               00000006
+TX9D                              00000000
+TXD8                              00000000
+TXEN                              00000005
+TXIE                              00000004
+TXIF                              00000004
+TXREG                             00000019
+TXSTA                             00000098
+TXSTA_INIT                        00000024
+UA                                00000001
+ULPWUE                            00000005
+ULPWUIE                           00000002
+ULPWUIF                           00000002
+USART_CONFIG_MARKER               0000000E
+USART_INIT_MARKER                 000000F0
+USART_Init                        000000CC
+USART_Mode_0                      00000106
+USART_Mode_1                      0000010E
+USART_Mode_1_Fenyero              0000011B
+USART_Mode_1_ToConfig             00000117
+USART_Mode_2                      00000127
+USART_Mode_2_To1                  00000137
+USART_RX_ACK_MARKER               000000F5
+USART_Recv                        000000ED
+USART_Recv_Modes                  000000F8
+USART_TX_ACK_BASE                 00000041
+USART_Task                        0000013A
+USART_Task_Ack                    0000015D
+USART_Task_Ver                    00000141
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE 39
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+USART_Task_Ver1                   00000147
+USART_Task_Ver2                   0000014E
+USART_Task_Ver3                   00000155
+VCFG0                             00000004
+VCFG1                             00000005
+VERSION_TEXT_1                    00000076
+VERSION_TEXT_2                    00000031
+VERSION_TEXT_3                    0000002E
+VERSION_TEXT_4                    00000030
+VR0                               00000000
+VR1                               00000001
+VR2                               00000002
+VR3                               00000003
+VRCON                             00000097
+VREN                              00000007
+VROE                              00000006
+VRR                               00000005
+VRSS                              00000004
+W                                 00000000
+WCOL                              00000007
+WDTCON                            00000105
+WDTCON_INIT                       00000015
+WDTPS0                            00000001
+WDTPS1                            00000002
+WDTPS2                            00000003
+WDTPS3                            00000004
+WPUB                              00000095
+WPUB0                             00000000
+WPUB1                             00000001
+WPUB2                             00000002
+WPUB3                             00000003
+WPUB4                             00000004
+WPUB5                             00000005
+WPUB6                             00000006
+WPUB7                             00000007
+WR                                00000001
+WREN                              00000002
+WRERR                             00000003
+WUE                               00000001
+W_Save                            00000070
+Z                                 00000002
+_BOR21V                           00003EFF
+_BOR40V                           00003FFF
+_BOR4V_BOR21V                     00003EFF
+_BOR4V_BOR40V                     00003FFF
+_BOREN_NSLEEP                     00003EFF
+_BOREN_OFF                        00003CFF
+_BOREN_ON                         00003FFF
+_BOREN_SBODEN                     00003DFF
+_BOR_NSLEEP                       00003EFF
+_BOR_OFF                          00003CFF
+_BOR_ON                           00003FFF
+_BOR_SBODEN                       00003DFF
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE 40
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+_CONFIG1                          00002007
+_CONFIG2                          00002008
+_CPD_OFF                          00003FFF
+_CPD_ON                           00003F7F
+_CP_OFF                           00003FFF
+_CP_ON                            00003FBF
+_DEBUG_OFF                        00003FFF
+_DEBUG_ON                         00001FFF
+_DEVID1                           00002006
+_EC_OSC                           00003FFB
+_EXTRC                            00003FFF
+_EXTRCIO                          00003FFE
+_EXTRC_OSC_CLKOUT                 00003FFF
+_EXTRC_OSC_NOCLKOUT               00003FFE
+_FCMEN_OFF                        000037FF
+_FCMEN_ON                         00003FFF
+_FOSC_EC                          00003FFB
+_FOSC_EXTRC_CLKOUT                00003FFF
+_FOSC_EXTRC_NOCLKOUT              00003FFE
+_FOSC_HS                          00003FFA
+_FOSC_INTRC_CLKOUT                00003FFD
+_FOSC_INTRC_NOCLKOUT              00003FFC
+_FOSC_LP                          00003FF8
+_FOSC_XT                          00003FF9
+_HS_OSC                           00003FFA
+_IDLOC0                           00002000
+_IDLOC1                           00002001
+_IDLOC2                           00002002
+_IDLOC3                           00002003
+_IESO_OFF                         00003BFF
+_IESO_ON                          00003FFF
+_INTOSC                           00003FFD
+_INTOSCIO                         00003FFC
+_INTRC_OSC_CLKOUT                 00003FFD
+_INTRC_OSC_NOCLKOUT               00003FFC
+_LP_OSC                           00003FF8
+_LVP_OFF                          00002FFF
+_LVP_ON                           00003FFF
+_MCLRE_OFF                        00003FDF
+_MCLRE_ON                         00003FFF
+_PWRTE_OFF                        00003FFF
+_PWRTE_ON                         00003FEF
+_RAM_B0                           0000004E
+_RAM_B1                           000000A0
+_WDTE_OFF                         00003FF7
+_WDTE_ON                          00003FFF
+_WDT_OFF                          00003FF7
+_WDT_ON                           00003FFF
+_WRT_1FOURTH                      00003BFF
+_WRT_HALF                         000039FF
+_WRT_OFF                          00003FFF
+_XT_OSC                           00003FF9
+__16F882                          00000001
+MPASM  5.51                          MAIN.ASM   7-29-2018  14:52:17         PAGE 41
+
+
+SYMBOL TABLE
+  LABEL                             VALUE 
+
+__DEBUG                           1
+array                             
+bank0                             
+bank1                             
+bank2                             
+bank3                             
+byte                              
+fenyero                           00000040
+fenyero_szin                      00000026
+pwm_cnt                           0000004C
+pwm_cnt_shift                     0000004D
+sc                                btfss   STATUS,C
+snc                               btfsc   STATUS,C
+snz                               btfsc   STATUS,Z
+sz                                btfss   STATUS,Z
+szint_b                           00000038
+szint_g                           00000030
+szint_r                           00000028
+tstw                              xorlw   0
+usart_rx_fenyero                  00000024
+usart_rx_id                       00000023
+usart_rx_mode                     00000022
+usart_rx_ph_cnt                   00000025
+usart_sendAck                     usart_status,1
+usart_sendVersion                 usart_status,0
+usart_status                      00000027
+word                              
+
+
+MEMORY USAGE MAP ('X' = Used,  '-' = Unused)
+
+0000 : XXX-XXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
+0040 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
+0080 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
+00C0 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
+0100 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
+0140 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX
+0180 : XXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXX XXXXXXX--------- ----------------
+2100 : XXXX------------ ---------------- ---------------- ----------------
+
+All other memory blocks unused.
+
+Program Memory Words Used:   422
+Program Memory Words Free:  1626
+
+
+Errors   :     0
+Warnings :     0 reported,    14 suppressed
+Messages :    17 reported,     0 suppressed
+
+
