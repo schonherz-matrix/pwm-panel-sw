@@ -1,12 +1,12 @@
 MPLINK 4.49, Linker
-Linker Map File - Created Sun Jul 29 14:52:18 2018
+Linker Map File - Created Tue Jul 31 15:30:20 2018
 
                                  Section Info
                   Section       Type    Address   Location Size(Bytes)
                 ---------  ---------  ---------  ---------  ---------
                    .org_0       code   0x000000    program   0x000000
                    .org_1       code   0x000000    program   0x000006
-                   .org_2       code   0x000004    program   0x000346
+                   .org_2       code   0x000004    program   0x0003ae
                    .org_3       code   0x002100    program   0x000008
 
 
@@ -15,40 +15,42 @@ Linker Map File - Created Sun Jul 29 14:52:18 2018
                                Start         End      
                            ---------   ---------      
                             0x000000    0x000002      
-                            0x000004    0x0001a6      
+                            0x000004    0x0001da      
                             0x002100    0x002103      
-            426 out of 2183 program addresses used, program memory utilization is 19%
+            478 out of 2183 program addresses used, program memory utilization is 21%
 
 
 
                               Symbols - Sorted by Name
                      Name    Address   Location    Storage File                     
                 ---------  ---------  ---------  --------- ---------                
-             EE_Read_Data   0x00019a    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
+             EE_Read_Data   0x0001ce    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
           EE_VERSION_ADDR   0x002100    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
                       ISR   0x000004    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
-                 IT_USART   0x000014    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
-         Init_PWM_Control   0x00002f    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\PWM.asm
-                Main_Loop   0x000185    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
-            Main_Loop_end   0x000195    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
-              PWM_Control   0x00005e    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\PWM.asm
-           PWM_Szin_Table   0x00001d    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
-              Start_Reset   0x000162    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
-               USART_Init   0x0000cc    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
-             USART_Mode_0   0x000106    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
-             USART_Mode_1   0x00010e    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
-     USART_Mode_1_Fenyero   0x00011b    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
-    USART_Mode_1_ToConfig   0x000117    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
-             USART_Mode_2   0x000127    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
-         USART_Mode_2_To1   0x000137    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
-               USART_Recv   0x0000ed    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
-         USART_Recv_Modes   0x0000f8    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
-               USART_Task   0x00013a    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
-           USART_Task_Ack   0x00015d    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
-           USART_Task_Ver   0x000141    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
-          USART_Task_Ver1   0x000147    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
-          USART_Task_Ver2   0x00014e    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
-          USART_Task_Ver3   0x000155    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
+                 IT_USART   0x000018    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
+         Init_PWM_Control   0x000037    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\PWM.asm
+                Main_Loop   0x0001b9    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
+            Main_Loop_end   0x0001c9    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
+              PWM_Control   0x000072    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\PWM.asm
+           PWM_Szin_Table   0x000025    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
+              Start_Reset   0x000196    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
+               USART_Init   0x0000e0    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
+             USART_Mode_0   0x00011d    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
+             USART_Mode_1   0x000125    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
+     USART_Mode_1_Fenyero   0x000132    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
+    USART_Mode_1_ToConfig   0x00012e    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
+             USART_Mode_2   0x000143    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
+         USART_Mode_2_To1   0x000154    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
+ USART_Mode_2_UPWMI_cycle   0x00015a    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
+USART_Mode_2_UpdatePWMIntervals   0x000158    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
+               USART_Recv   0x000102    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
+         USART_Recv_Modes   0x00010f    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
+               USART_Task   0x00016e    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
+           USART_Task_Ack   0x000191    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
+           USART_Task_Ver   0x000175    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
+          USART_Task_Ver1   0x00017b    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
+          USART_Task_Ver2   0x000182    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
+          USART_Task_Ver3   0x000189    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
 
 
 
@@ -56,29 +58,31 @@ Linker Map File - Created Sun Jul 29 14:52:18 2018
                      Name    Address   Location    Storage File                     
                 ---------  ---------  ---------  --------- ---------                
                       ISR   0x000004    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
-                 IT_USART   0x000014    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
-           PWM_Szin_Table   0x00001d    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
-         Init_PWM_Control   0x00002f    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\PWM.asm
-              PWM_Control   0x00005e    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\PWM.asm
-               USART_Init   0x0000cc    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
-               USART_Recv   0x0000ed    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
-         USART_Recv_Modes   0x0000f8    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
-             USART_Mode_0   0x000106    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
-             USART_Mode_1   0x00010e    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
-    USART_Mode_1_ToConfig   0x000117    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
-     USART_Mode_1_Fenyero   0x00011b    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
-             USART_Mode_2   0x000127    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
-         USART_Mode_2_To1   0x000137    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
-               USART_Task   0x00013a    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
-           USART_Task_Ver   0x000141    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
-          USART_Task_Ver1   0x000147    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
-          USART_Task_Ver2   0x00014e    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
-          USART_Task_Ver3   0x000155    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
-           USART_Task_Ack   0x00015d    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
-              Start_Reset   0x000162    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
-                Main_Loop   0x000185    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
-            Main_Loop_end   0x000195    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
-             EE_Read_Data   0x00019a    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
+                 IT_USART   0x000018    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
+           PWM_Szin_Table   0x000025    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
+         Init_PWM_Control   0x000037    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\PWM.asm
+              PWM_Control   0x000072    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\PWM.asm
+               USART_Init   0x0000e0    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
+               USART_Recv   0x000102    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
+         USART_Recv_Modes   0x00010f    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
+             USART_Mode_0   0x00011d    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
+             USART_Mode_1   0x000125    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
+    USART_Mode_1_ToConfig   0x00012e    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
+     USART_Mode_1_Fenyero   0x000132    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
+             USART_Mode_2   0x000143    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
+         USART_Mode_2_To1   0x000154    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
+USART_Mode_2_UpdatePWMIntervals   0x000158    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
+ USART_Mode_2_UPWMI_cycle   0x00015a    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
+               USART_Task   0x00016e    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
+           USART_Task_Ver   0x000175    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
+          USART_Task_Ver1   0x00017b    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
+          USART_Task_Ver2   0x000182    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
+          USART_Task_Ver3   0x000189    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
+           USART_Task_Ack   0x000191    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\usart.asm
+              Start_Reset   0x000196    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
+                Main_Loop   0x0001b9    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
+            Main_Loop_end   0x0001c9    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
+             EE_Read_Data   0x0001ce    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
           EE_VERSION_ADDR   0x002100    program     static D:\dokumentumok.tomi\programozas\Matrix\matrix4-pwm-sw\main.asm
 
 

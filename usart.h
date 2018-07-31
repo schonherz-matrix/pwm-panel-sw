@@ -4,9 +4,11 @@
 			;1 - normal mode
 		byte	usart_rx_id,0
 		byte	usart_rx_fenyero,0
+		byte	usart_rx_fenyero_tmp,0
 		byte	usart_rx_ph_cnt,0
 		byte	fenyero_szin,0
 		byte	usart_status,0
+
 
 #define		usart_sendVersion	usart_status,0
 #define		usart_sendAck		usart_status,1

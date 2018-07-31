@@ -1,7 +1,8 @@
-		array	szint_r,8,0	;pwm interval (EZ A SORREND MARAD!)
-		array	szint_g,8,0	;pwm interval (EZ A SORREND MARAD!)
-		array	szint_b,8,0	;pwm interval (EZ A SORREND MARAD!)
-		array	fenyero,12,0	;3 bit fenyero (rgb*4pixel)
+		array	szint_r,8,0		;pwm interval (EZ A SORREND MARAD!)
+		array	szint_g,8,0		;pwm interval (EZ A SORREND MARAD!)
+		array	szint_b,8,0		;pwm interval (EZ A SORREND MARAD!)
+		array	fenyero,12,0		;6 bit pwm interval (rgb*4pixel)
+		array	fenyero_3bit,12,0	;3 bit brightness (from mueb)
 		byte	pwm_cnt,0
 		byte	pwm_cnt_shift,0
 
@@ -32,8 +33,8 @@ PWM_SHIFT	=	64/4
 #define		BIT_P1B		3
 
 #define		BIT_P2R		0
-#define		BIT_P2G		5
-#define		BIT_P2B		4
+#define		BIT_P2G		4
+#define		BIT_P2B		5
 
 #define		BIT_P3R		3
 #define		BIT_P3G		2

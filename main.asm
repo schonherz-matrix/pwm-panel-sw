@@ -34,6 +34,8 @@ RAM_B1_END	=	0x00BF		;Bank1 RAM inicializalasok vege
 W_Save
 STATUS_Save
 PCLATH_Save
+i_Save
+j_Save
 	endc
 
 
@@ -42,6 +44,8 @@ TIMER0_CYCLE		=	256		;Instruction cycle per Interrupt
 TMR0_INIT		=	256- TIMER0_CYCLE/2 +8
 
 	byte	SystemTimer10ms,0
+	byte	i,0
+	byte	j,0
 
 ;******************************************************************************
 ;*									      *
@@ -69,6 +73,11 @@ ISR
 
 		movf	PCLATH,w	;save PCLATH
 		movwf	PCLATH_Save
+
+		movfw	i
+		movwf	i_Save
+		movfw	j
+		movwf	j_Save
 ;-----ISR------
 		bank0
 
@@ -86,6 +95,11 @@ IT_USART
 		call	USART_Recv	;igen, feldolgozzuk
 
 ;-----ISR-END--
+		movfw	i_Save
+		movwf	i
+		movfw	j_Save
+		movwf	j
+
 		movf	PCLATH_Save,w	;Restore PCLATH
 		movwf	PCLATH
 
@@ -105,17 +119,17 @@ PWM_Szin_Table
 		addwf		PCL,f
 
 		retlw		szint_r
+		retlw		szint_g
+		retlw		szint_b
 		retlw		szint_r
+		retlw		szint_g
+		retlw		szint_b
 		retlw		szint_r
+		retlw		szint_g
+		retlw		szint_b
 		retlw		szint_r
-		retlw		szint_r
-		retlw		szint_r
-		retlw		szint_r
-		retlw		szint_r
-		retlw		szint_r
-		retlw		szint_r
-		retlw		szint_r
-		retlw		szint_r
+		retlw		szint_g
+		retlw		szint_b
 		;Nem szükséges, de nehogy túlfusson
 		retlw		szint_r
 		retlw		szint_r

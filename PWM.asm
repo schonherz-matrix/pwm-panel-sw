@@ -12,6 +12,19 @@ Init_PWM_Control
 		clrf	fenyero+10
 		clrf	fenyero+11
 
+		clrf	fenyero_3bit
+		clrf	fenyero_3bit+1
+		clrf	fenyero_3bit+2
+		clrf	fenyero_3bit+3
+		clrf	fenyero_3bit+4
+		clrf	fenyero_3bit+5
+		clrf	fenyero_3bit+6
+		clrf	fenyero_3bit+7
+		clrf	fenyero_3bit+8
+		clrf	fenyero_3bit+9
+		clrf	fenyero_3bit+10
+		clrf	fenyero_3bit+11
+
 		movlw	0x00
 		movwf	szint_r
 		movwf	szint_g
@@ -49,7 +62,7 @@ Init_PWM_Control
 		clrf	pwm_cnt_shift
 
 		return
-
+;-------------------------------------------------------------------------------
 PWM_Control
 		nop
 		movfw	pwm_cnt		;pwm_cnt másolása a pwm_cnt_shift-be
