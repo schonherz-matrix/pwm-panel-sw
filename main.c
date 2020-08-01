@@ -1,7 +1,5 @@
 #include "main.h"
 
-//#BYTE WPUB = 0x95
-
 char fazis[12];
 char cnt = 0;
 
@@ -89,6 +87,7 @@ volatile int8 rest_cause = 0;
 #define PCH10 ph_g
 #define PCH11 ph_b
 
+//colors' brightness in PWM cycles (0-63)
 void initPhases()
 {
 	ph_r[0] = 0;
@@ -117,6 +116,8 @@ void initPhases()
 	ph_b[7] = 63;
 }
 
+//Timer interrupt for SW PWM
+//Called every 256 cycles
 #int_TIMER0
 void OLD_TIMER_isr(void)
 {
@@ -128,33 +129,30 @@ void OLD_TIMER_isr(void)
 
 	//Software PWM for each channel
 	// Channel 0
-	if( PCH0[fazis[CH0]] > cnt) { out1 = (out1>>1)|0x80; } else { out1 = (out1>>1); }
+	if( PCH0[fazis[CH0]] > cnt) { out1 |= (1<<0);}
 	// Channel 1
-	if( PCH1[fazis[CH1]] > cnt) { out1 = (out1>>1)|0x80; } else { out1 = (out1>>1); }
+	if( PCH1[fazis[CH1]] > cnt) { out1 |= (1<<1);}
 	// Channel 2
-	if( PCH2[fazis[CH2]] > cnt) { out1 = (out1>>1)|0x80; } else { out1 = (out1>>1); }
+	if( PCH2[fazis[CH2]] > cnt) { out1 |= (1<<2);}
 	// Channel 3
-	if( PCH3[fazis[CH3]] > cnt) { out1 = (out1>>1)|0x80; } else { out1 = (out1>>1); }
+	if( PCH3[fazis[CH3]] > cnt) { out1 |= (1<<3);}
 	// Channel 4
-	if( PCH4[fazis[CH4]] > cnt) { out1 = (out1>>1)|0x80; } else { out1 = (out1>>1); }
+	if( PCH4[fazis[CH4]] > cnt) { out1 |= (1<<4);}
 	// Channel 5
-	if( PCH5[fazis[CH5]] > cnt) { out1 = (out1>>1)|0x80; } else { out1 = (out1>>1); }
+	if( PCH5[fazis[CH5]] > cnt) { out1 |= (1<<5);}
 	
 	// Channel 6
-	if( PCH6[fazis[CH6]] > cnt) { out2 = (out2>>1)|0x80; } else { out2 = (out2>>1); }
+	if( PCH6[fazis[CH6]] > cnt) { out2 |= (1<<0);}
 	// Channel 7
-	if( PCH7[fazis[CH7]] > cnt) { out2 = (out2>>1)|0x80; } else { out2 = (out2>>1); }
+	if( PCH7[fazis[CH7]] > cnt) { out2 |= (1<<1);}
 	// Channel 8
-	if( PCH8[fazis[CH8]] > cnt) { out2 = (out2>>1)|0x80; } else { out2 = (out2>>1); }
+	if( PCH8[fazis[CH8]] > cnt) { out2 |= (1<<2);}
 	// Channel 9
-	if( PCH9[fazis[CH9]] > cnt) { out2 = (out2>>1)|0x80; } else { out2 = (out2>>1); }
+	if( PCH9[fazis[CH9]] > cnt) { out2 |= (1<<3);}
 	// Channel 10
-	if( PCH10[fazis[CH10]] > cnt) { out2 = (out2>>1)|0x80; } else { out2 = (out2>>1); }
+	if( PCH10[fazis[CH10]] > cnt) { out2 |= (1<<4);}
 	// Channel 11
-	if( PCH11[fazis[CH11]] > cnt) { out2 = (out2>>1)|0x80; } else { out2 = (out2>>1); }
-
-	out1 = (out1>>2);
-	out2 = (out2>>2);
+	if( PCH11[fazis[CH11]] > cnt) { out2 |= (1<<5);}
 
 	//set output ports
 	output_a(out1);
@@ -293,18 +291,6 @@ void main()
 	output_a(255);
 	output_c(255);
 
-	//TODO no longer needed
-	putc('\n');
-	putc('\n');
-	putc('g');
-	putc('e');
-	putc('r');
-	putc('p');
-	putc('e');
-	putc('t');
-	putc('y');
-	putc('a');
-
 	//init leds
 	for(i = 0; i<12; i++)
 	{
@@ -315,6 +301,7 @@ void main()
 	while(1)
 	{
 		disable_interrupts(GLOBAL);
+		//send 1sec heartbeat + last restart cause on UART
 		if (send_cnt >= 15625)//15625=1sec
 		{
 			send_cnt = 0;
