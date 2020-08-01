@@ -16,10 +16,6 @@ char ph_b[8];
 //counter used for indexing color level in config mode
 char ph_cnt = 0;
 
-//side, according to jumper
-//0-left; 1-right
-char oldal = 0; 
-
 //uart mode
 //0: uninitialized
 //1: config mode
@@ -182,28 +178,22 @@ void OLD_RDA_isr(void)
 	c = getc();
 
 	int8 id = (c>>4);
-	if(id == 15)
+	if (c == 0xF0)
 	{
-		//if 
-		if((c & 0x0F) == (oldal))
-		{
-			uartact = 1;
-		} else {
-			uartact = 0;
-		}
+		uartact = 1;
 	}
-	else if(id == 14)
+	else if (c == 0xE0)
 	{
 		//enter config mode
 		uartact = 2;
 		ph_cnt = 0;
 	}
-	if(id == 13)
+	else if (id == 13)
 	{
-		//return version and side
-		putc(((VER1&0x0F)<<4) | ((VER2&0x07)<<1) | (oldal&0x01));
+		//return version
+		putc(((VER1&0x0F)<<4) | ((VER2&0x07)<<1));
 	}
-	else //id <= 12
+	else if (id == 12) //id <= 12
 	{
 		//config/normal mode
 		if((uartact == 2))
@@ -277,15 +267,6 @@ void main()
 	set_TRIS_A(0x00); // 0=kimenet, 1=bemenet
 	set_TRIS_B(0b11111111); // 0=kimenet, 1=bemenet
 	set_TRIS_C(0x00); // 0=kimenet, 1=bemenet
-
-	// RB5 jumperes (ablak selector)
-	char tempb = input_b();
-
-	if(tempb & 0b00100000) {
-		oldal = 0;
-	} else {
-		oldal = 1;
-	}
 
 	//reset all outputs (0 for leds)
 	output_a(255);
