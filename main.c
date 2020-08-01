@@ -4,9 +4,9 @@ char fazis[12];
 char cnt = 0;
 
 // VER1 max: 0xF
-#define VER1 0x02
+#define VER1 0x03
 // VER2 max: 0x7
-#define VER2 0x01
+#define VER2 0x00
 
 //lookup tables for color brightness
 //each byte has value between 0-63
