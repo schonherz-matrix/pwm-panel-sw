@@ -182,23 +182,25 @@ void OLD_RDA_isr(void)
 	{
 		uartact = 1;
 	}
+	else if (c == 0xF8)
+	{
+		rest_cause = 0;
+	}
 	else if (c == 0xE0)
 	{
 		//enter config mode
 		uartact = 2;
 		ph_cnt = 0;
 	}
-	else if (id == 13)
+	else if (c == 0xD0)
 	{
 		//return version
-		putc(((VER1&0x0F)<<4) | ((VER2&0x07)<<1));
+		putc(((VER1&0x0F)<<3) | ((VER2&0x07)));
 	}
-	else if (id == 12) //id <= 12
+	else if (id <= 12) //id <= 12
 	{
-		//config/normal mode
-		if((uartact == 2))
+		if((uartact == 2)) //config mode
 		{
-			//config mode
 			switch(ph_cnt)
 			{
 				case 0: ph_r[1] = c; break;
@@ -223,12 +225,12 @@ void OLD_RDA_isr(void)
 				case 19: ph_b[6] = c; break;
 				case 20: ph_b[7] = c; break;
 			}
-			ph_cnt++;
+			//ph_cnt=21 -> do nothing
+			if (ph_cnt <= 20) ph_cnt++;
 		}
 		else if (uartact == 1)
 		{
-			//normal mode, set color accordingly
-			if(id < 12)
+			if(id < 12) //normal mode, set color accordingly
 			{
 				fazis[id] = (c & 0x0F);
 			}
@@ -245,10 +247,10 @@ void main()
 	rest_cause = restart_cause();
 	switch (rest_cause)
 	{
-		case WDT_TIMEOUT: rest_cause = 1; break;
-		case MCLR_FROM_RUN: rest_cause = 2; break;
-		case BROWNOUT_RESTART: rest_cause = 3; break;
-		default: rest_cause = 0; break; //normal
+		case BROWNOUT_RESTART: rest_cause = 1; break;
+		case WDT_TIMEOUT: rest_cause = 2; break;
+		case MCLR_FROM_RUN: rest_cause = 3; break;
+		default: rest_cause = 0; break;
 	}
 
 	setup_adc_ports(NO_ANALOGS|VSS_VDD);
@@ -275,7 +277,7 @@ void main()
 	//init leds
 	for(i = 0; i<12; i++)
 	{
-		fazis[i] = 0;//(i/3) + 4;
+		fazis[i] = 0;
 	}
 
 	
