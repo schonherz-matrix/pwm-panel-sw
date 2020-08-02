@@ -232,7 +232,7 @@ void OLD_RDA_isr(void)
 		{
 			if(id < 12) //normal mode, set color accordingly
 			{
-				fazis[id] = (c & 0x0F);
+				fazis[id] = (c & 0x07);
 			}
 		}
 	}
