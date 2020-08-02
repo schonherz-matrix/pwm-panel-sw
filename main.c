@@ -250,7 +250,7 @@ void main()
 		case BROWNOUT_RESTART: rest_cause = 1; break;
 		case WDT_TIMEOUT: rest_cause = 2; break;
 		case MCLR_FROM_RUN: rest_cause = 3; break;
-		default: rest_cause = 0; break;
+		default: rest_cause = 4; break;
 	}
 
 	setup_adc_ports(NO_ANALOGS|VSS_VDD);
