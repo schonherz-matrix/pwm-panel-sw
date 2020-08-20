@@ -8,6 +8,8 @@ char cnt = 0;
 // VER2 max: 0x7
 #define VER2 0x00
 
+#define CNT_1SEC	(15625)
+
 //lookup tables for color brightness
 //each byte has value between 0-63
 char ph_r[8];
@@ -117,8 +119,7 @@ void initPhases()
 #int_TIMER0
 void OLD_TIMER_isr(void)
 {
-	//Watchdog timer reset
-	restart_wdt();
+	clear_interrupt(INT_TIMER0);
 	char i = 0;
 	char out1 = 0;
 	char out2 = 0;
@@ -161,7 +162,7 @@ void OLD_TIMER_isr(void)
 		cnt = 0;
 	}
 	//heartbeat counter increment
-	if (send_cnt < 16000)
+	if (send_cnt < CNT_1SEC)
 	{
 		send_cnt++;
 	}
@@ -171,8 +172,6 @@ void OLD_TIMER_isr(void)
 #int_RDA
 void OLD_RDA_isr(void)
 {
-	disable_interrupts(GLOBAL);
-
 	char c;
 
 	c = getc();
@@ -236,22 +235,20 @@ void OLD_RDA_isr(void)
 			}
 		}
 	}
-
-	enable_interrupts(GLOBAL);
 }
 
 void main()
 {
 	int8 i;
-	restart_wdt();
-	rest_cause = restart_cause();
-	switch (rest_cause)
+	i = restart_cause();
+	switch (i)
 	{
 		case BROWNOUT_RESTART: rest_cause = 1; break;
 		case WDT_TIMEOUT: rest_cause = 2; break;
 		case MCLR_FROM_RUN: rest_cause = 3; break;
 		default: rest_cause = 4; break;
 	}
+	restart_wdt();
 
 	setup_adc_ports(NO_ANALOGS|VSS_VDD);
 	setup_adc(ADC_CLOCK_DIV_2);
@@ -265,7 +262,6 @@ void main()
 
 	initPhases();
 
-	
 	set_TRIS_A(0x00); // 0=kimenet, 1=bemenet
 	set_TRIS_B(0b11111111); // 0=kimenet, 1=bemenet
 	set_TRIS_C(0x00); // 0=kimenet, 1=bemenet
@@ -279,15 +275,17 @@ void main()
 	{
 		fazis[i] = 0;
 	}
+	putc(0x80 | rest_cause);
 
-	
 	while(1)
 	{
 		disable_interrupts(GLOBAL);
+		//Watchdog timer reset
+		restart_wdt();
+
 		//send 1sec heartbeat + last restart cause on UART
-		if (send_cnt >= 15625)//15625=1sec
+		if (send_cnt == CNT_1SEC)//15625=1sec
 		{
-			send_cnt = 0;
 			putc(0x80 | rest_cause);
 		}
 		enable_interrupts(GLOBAL);
