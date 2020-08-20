@@ -267,8 +267,8 @@ void main()
 	set_TRIS_C(0x00); // 0=kimenet, 1=bemenet
 
 	//reset all outputs (0 for leds)
-	output_a(255);
-	output_c(255);
+	output_a(0);
+	output_c(0);
 
 	//init leds
 	for(i = 0; i<12; i++)
