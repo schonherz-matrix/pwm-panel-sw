@@ -286,6 +286,7 @@ void main()
 		//send 1sec heartbeat + last restart cause on UART
 		if (send_cnt == CNT_1SEC)//15625=1sec
 		{
+			send_cnt = 0;
 			putc(0x80 | rest_cause);
 		}
 		enable_interrupts(GLOBAL);
