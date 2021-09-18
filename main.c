@@ -6,24 +6,26 @@ char cnt = 0;
 // VER1 max: 0xF
 #define VER1 0x03
 // VER2 max: 0x7
-#define VER2 0x01
+#define VER2 0x02
 
 #define CNT_1SEC	(15625)
 
 //lookup tables for color brightness
 //each byte has value between 0-63
-char ph_r[8];
-char ph_g[8];
-char ph_b[8];
+char ph_r[16];
+char ph_g[16];
+char ph_b[16];
 //counter used for indexing color level in config mode
-char ph_cnt = 0;
+unsigned char ph_cnt = 0;
 
 //uart mode
 //0: uninitialized
 //1: config mode
 //2: normal mode
 char uartact = 0;
+//counter for heartbeat
 volatile unsigned int16 send_cnt = 0;
+//why restart happened
 volatile int8 rest_cause = 0;
 
 /*
@@ -90,28 +92,54 @@ void initPhases()
 {
 	ph_r[0] = 0;
 	ph_r[1] = 1;
-	ph_r[2] = 2;
-	ph_r[3] = 4;
-	ph_r[4] = 8;
-	ph_r[5] = 16;
-	ph_r[6] = 32;
-	ph_r[7] = 63;
+	ph_r[2] = 3;
+	ph_r[3] = 5;
+	ph_r[4] = 7;
+	ph_r[5] = 9;
+	ph_r[6] = 11;
+	ph_r[7] = 13;
+	ph_r[8] = 16;
+	ph_r[9] = 19;
+	ph_r[10] = 22;
+	ph_r[11] = 26;
+	ph_r[12] = 32;
+	ph_r[13] = 38;
+	ph_r[14] = 47;
+	ph_r[15] = 63;
+
 	ph_g[0] = 0;
 	ph_g[1] = 1;
-	ph_g[2] = 2;
-	ph_g[3] = 4;
-	ph_g[4] = 8;
-	ph_g[5] = 16;
-	ph_g[6] = 32;
-	ph_g[7] = 63;
+	ph_g[2] = 3;
+	ph_g[3] = 5;
+	ph_g[4] = 7;
+	ph_g[5] = 9;
+	ph_g[6] = 11;
+	ph_g[7] = 13;
+	ph_g[8] = 16;
+	ph_g[9] = 19;
+	ph_g[10] = 22;
+	ph_g[11] = 26;
+	ph_g[12] = 32;
+	ph_g[13] = 38;
+	ph_g[14] = 47;
+	ph_g[15] = 63;
+
 	ph_b[0] = 0;
 	ph_b[1] = 1;
-	ph_b[2] = 2;
-	ph_b[3] = 4;
-	ph_b[4] = 8;
-	ph_b[5] = 16;
-	ph_b[6] = 32;
-	ph_b[7] = 63;
+	ph_b[2] = 3;
+	ph_b[3] = 5;
+	ph_b[4] = 7;
+	ph_b[5] = 9;
+	ph_b[6] = 11;
+	ph_b[7] = 13;
+	ph_b[8] = 16;
+	ph_b[9] = 19;
+	ph_b[10] = 22;
+	ph_b[11] = 26;
+	ph_b[12] = 32;
+	ph_b[13] = 38;
+	ph_b[14] = 47;
+	ph_b[15] = 63;
 }
 
 //Timer interrupt for SW PWM
@@ -200,38 +228,29 @@ void OLD_RDA_isr(void)
 	{
 		if((uartact == 2)) //config mode
 		{
-			switch(ph_cnt)
+			if (ph_cnt <= 14)      // [0, 14]
 			{
-				case 0: ph_r[1] = c; break;
-				case 1: ph_r[2] = c; break;
-				case 2: ph_r[3] = c; break;
-				case 3: ph_r[4] = c; break;
-				case 4: ph_r[5] = c; break;
-				case 5: ph_r[6] = c; break;
-				case 6: ph_r[7] = c; break;
-				case 7: ph_g[1] = c; break;
-				case 8: ph_g[2] = c; break;
-				case 9: ph_g[3] = c; break;
-				case 10: ph_g[4] = c; break;
-				case 11: ph_g[5] = c; break;
-				case 12: ph_g[6] = c; break;
-				case 13: ph_g[7] = c; break;
-				case 14: ph_b[1] = c; break;
-				case 15: ph_b[2] = c; break;
-				case 16: ph_b[3] = c; break;
-				case 17: ph_b[4] = c; break;
-				case 18: ph_b[5] = c; break;
-				case 19: ph_b[6] = c; break;
-				case 20: ph_b[7] = c; break;
+				ph_r[ph_cnt+1] = c;
 			}
-			//ph_cnt=21 -> do nothing
-			if (ph_cnt <= 20) ph_cnt++;
+			else if (ph_cnt <= 29) // [15, 29]
+			{
+				ph_g[ph_cnt-14] = c;
+			}
+			else if (ph_cnt <= 44) // [30, 44]
+			{
+				ph_b[ph_cnt-29] = c;
+			}
+			else // [45,...], exit
+			{
+				uartact = 0;
+			}
+			ph_cnt++;
 		}
 		else if (uartact == 1)
 		{
 			if(id < 12) //normal mode, set color accordingly
 			{
-				fazis[id] = (c & 0x07);
+				fazis[id] = (c & 0x0F);
 			}
 		}
 	}
