@@ -6,7 +6,7 @@ char cnt = 0;
 // VER1 max: 0xF
 #define VER1 0x03
 // VER2 max: 0x7
-#define VER2 0x00
+#define VER2 0x01
 
 #define CNT_1SEC	(15625)
 
