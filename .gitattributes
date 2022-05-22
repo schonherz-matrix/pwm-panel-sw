@@ -1,2 +1,4 @@
-*.mcw[[:space:]]*.pdf[[:space:]]*.TXT[[:space:]]*.txt filter=lfs diff=lfs merge=lfs -text
+*.mcw filter=lfs diff=lfs merge=lfs -text
+*.pdf filter=lfs diff=lfs merge=lfs -text
+reads/*.txt filter=lfs diff=lfs merge=lfs -text
 *.mcw[[:space:]]*.pdf[[:space:]]reads/*.txt filter=lfs diff=lfs merge=lfs -text
